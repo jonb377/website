@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package go.micro.api.auth;
+
+message CreateConnectionRequest {
+    bytes A = 1;
+    string Username = 2;
+}
+
+message CreateConnectionResponse {
+    bytes B = 1;
+}
+
+message ConnectionChallengeRequest {
+    bytes M = 1;
+    string Username = 2;
+}
+
+message ConnectionChallengeResponse {
+    bytes HAMK = 1;
+}
+
+message CloseConnectionRequest {
+    string SessionID = 1;
+}
+
+message ValidateTokenRequest{
+    string Token = 1;
+    string Device = 2;
+}
+
+message ValidateTokenResponse{
+    string SessionID = 1;
+    bytes SessionKey = 2;
+}
+
+message Empty {}
+
+service AuthService {
+    rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse) {}
+    rpc ConnectionChallenge(ConnectionChallengeRequest) returns (ConnectionChallengeResponse) {}
+    rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse) {}
+    rpc CloseConnection(CloseConnectionRequest) returns (Empty) {}
+}

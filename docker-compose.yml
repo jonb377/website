@@ -1,0 +1,46 @@
+version: '3.1'
+
+services:
+  auth-service:
+    build:
+      context: ./auth-service
+    ports:
+      - 9546:9546
+    environment:
+      MICRO_ADDRESS: ":9546"
+      DB_NAME: "auth"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_USER: "auth-service"
+      DB_PASSWORD: "postgres"
+  
+  password-manager-service:
+    build:
+      context: ./password-manager-service
+    ports:
+      - 9547:9546
+    environment:
+      MICRO_ADDRESS: ":9546"
+      DB_NAME: "password-manager"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_USER: "password-manager-service"
+      DB_PASSWORD: "postgres"
+
+  user-service:
+    build:
+      context: ./user-service
+    ports:
+      - 9548:9546
+    environment:
+      MICRO_ADDRESS: ":9546"
+      DB_NAME: "user"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_USER: "user-service"
+      DB_PASSWORD: "postgres"
+
+  database:
+    image: postgres
+    ports:
+      - 5432:5432

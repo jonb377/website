@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package go.micro.api.user;
+
+message RegisterRequest {
+    string Username = 1;
+    string Firstname = 2;
+    string Lastname = 3;
+    string Email = 4;
+    bytes Salt = 5;
+    bytes Verifier = 6;
+}
+
+message Empty {}
+
+message VerifierRequest {
+    string Username = 1;
+    string Device = 2;
+}
+
+message VerifierResponse {
+    bytes Verifier = 1;
+    bytes Salt = 2;
+}
+
+message AddDeviceRequest {
+    string Username = 1;
+    string Device = 2;
+}
+
+service UserService {
+    rpc RegisterUser(RegisterRequest) returns (Empty) {}
+    rpc GetVerifier(VerifierRequest) returns (VerifierResponse) {}
+    rpc AddDevice(AddDeviceRequest) returns (Empty) {}
+}
