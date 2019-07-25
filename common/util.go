@@ -47,7 +47,7 @@ func (r *myRequest) Read() ([]byte, error) {
 // Wraps inbound requests. Decrypts inbound and outbound data if a session is active.
 // Adds "authenticated" to the context, which indicates whether an active session was found.
 func AuthWrapper(fn server.HandlerFunc) server.HandlerFunc {
-    return func(ctx context.Context, req server.Request, resp server.Response) error {
+    return func(ctx context.Context, req server.Request, resp interface{}) error {
         meta, ok := metadata.FromContext(ctx)
         if !ok {
             return errors.New("no auth meta-data found in request")
