@@ -12,7 +12,7 @@ import (
 
 
 type AuthCheck interface {
-    func Authenticated() bool
+    Authenticated() bool
 }
 
 type authenticated struct {
