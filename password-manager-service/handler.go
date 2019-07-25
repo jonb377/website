@@ -15,22 +15,22 @@ func (s *PasswordManagerService) UpdatePassword(ctx context.Context,  req *pb.Up
     if err := s.db.Table("logins").Set(
         "gorm:insert_option",
         "ON CONFLICT (user, username, domain) DO UPDATE SET username = excluded.username, password = excluded.password, date = excluded.date, deleted = excluded.deleted",
-		).Create(&PasswordEntry{
-			User: req.User,
-			Domain: req.Entry.Domain,
-			Username: req.Entry.Username,
-			Password: req.Entry.Password,
-			Date: time.Unix(req.Entry.Date, 0),
-			Deleted: req.Entry.Deleted,
-		}).Error; err != nil {
-		return err
-	}
-	return nil
+        ).Create(&PasswordEntry{
+            User: req.User,
+            Domain: req.Entry.Domain,
+            Username: req.Entry.Username,
+            Password: req.Entry.Password,
+            Date: time.Unix(req.Entry.Date, 0),
+            Deleted: req.Entry.Deleted,
+        }).Error; err != nil {
+        return err
+    }
+    return nil
 }
 
 func (s *PasswordManagerService) ListPasswords(ctx context.Context, req *pb.ListPasswordRequest, resp *pb.ListPasswordResponse) error {
-	if err := s.db.Table("logins").Where("user = ? and date > ?", req.User, time.Unix(req.Date, 0)).Find(&resp.Passwords).Error; err != nil {
-		return err
-	}
-	return nil
+    if err := s.db.Table("logins").Where("user = ? and date > ?", req.User, time.Unix(req.Date, 0)).Find(&resp.Passwords).Error; err != nil {
+        return err
+    }
+    return nil
 }

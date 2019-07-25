@@ -18,9 +18,9 @@ type AuthService struct {
 
 func (s *AuthService) CreateConnection(ctx context.Context, req *pb.CreateConnectionRequest, resp *pb.CreateConnectionResponse) error {
     md, ok := metadata.FromContext(ctx)
-	if !ok {
-		md = metadata.Metadata{}
-	}
+    if !ok {
+        md = metadata.Metadata{}
+    }
     device := md["Device"]
     if device == "" {
         return errors.New("device header required")
@@ -54,9 +54,9 @@ func (s *AuthService) CreateConnection(ctx context.Context, req *pb.CreateConnec
 
 func (s *AuthService) ConnectionChallenge(ctx context.Context, req *pb.ConnectionChallengeRequest, resp *pb.ConnectionChallengeResponse) error {
     md, ok := metadata.FromContext(ctx)
-	if !ok {
-		md = metadata.Metadata{}
-	}
+    if !ok {
+        md = metadata.Metadata{}
+    }
     device := md["Device"]
     if device == "" {
         return errors.New("device header required")
@@ -84,7 +84,7 @@ func (s *AuthService) ConnectionChallenge(ctx context.Context, req *pb.Connectio
 func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest, resp *pb.ValidateTokenResponse) error {
     claims, err := s.tokenService.Decode(req.Token)
     if err != nil {
-    	return err
+        return err
     }
     var session Session
     if err = s.db.Table("sessions").Where("session_id = ?", claims.SessionId).First(&session).Error; err != nil {

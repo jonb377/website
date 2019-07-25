@@ -1,7 +1,7 @@
-package main
+package common
 
 import (
-	authService "../auth-service/proto/auth"
+    authService "github.com/jonb377/website/auth-service/proto/auth"
     "context"
     "errors"
     "github.com/micro/go-micro/client"
@@ -11,14 +11,25 @@ import (
 )
 
 
+type AuthCheck interface {
+    func Authenticated() bool
+}
+
+type authenticated struct {
+    a bool
+}
+
+func (a *authenticated) Authenticated() bool {
+    return a.a
+}
+
+
 type myRequest struct {
     server.Request
     sessionKey []byte
 }
 
-/*
-Wrap the Request Read method to decrypt the body
- */
+// Wrap the Request Read method to decrypt the body
 func (r *myRequest) Read() ([]byte, error) {
     cipher := NewAESCipher(r.sessionKey)
     body, err := r.Request.Read()
@@ -33,8 +44,10 @@ func (r *myRequest) Read() ([]byte, error) {
 }
 
 
+// Wraps inbound requests. Decrypts inbound and outbound data if a session is active.
+// Adds "authenticated" to the context, which indicates whether an active session was found.
 func AuthWrapper(fn server.HandlerFunc) server.HandlerFunc {
-    return func(ctx context.Context, req server.Request, resp interface{}) error {
+    return func(ctx context.Context, req server.Request, resp server.Response) error {
         meta, ok := metadata.FromContext(ctx)
         if !ok {
             return errors.New("no auth meta-data found in request")
@@ -45,7 +58,7 @@ func AuthWrapper(fn server.HandlerFunc) server.HandlerFunc {
         if ok {
             device, ok := meta["Device"]
             if !ok {
-                return errors.New("device header messing")
+                return errors.New("device header missing")
             }
             log.Println("Authenticating with token: ", tokenString)
 
@@ -55,14 +68,18 @@ func AuthWrapper(fn server.HandlerFunc) server.HandlerFunc {
                 Device: device,
             })
             if err != nil {
+                log.Println("Authentication failed: ", err)
                 return err
             }
-            err = fn(ctx, &myRequest{
+            err = fn(context.WithValue(ctx, "authenticated", &authenticated{true}), &myRequest{
                 Request: req,
                 sessionKey: tokenResponse.SessionKey,
             }, resp)
+            if err == nil {
+                // Encrypt the response
+            }
         } else {
-            err = fn(ctx, req, resp)
+            err = fn(context.WithValue(ctx, "authenticated", &authenticated{false}), req, resp)
         }
         return err
     }

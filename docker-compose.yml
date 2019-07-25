@@ -8,11 +8,13 @@ services:
       - 9546:9546
     environment:
       MICRO_ADDRESS: ":9546"
-      DB_NAME: "auth"
+      DB_NAME: "postgres"
       DB_HOST: "database"
       DB_PORT: "5432"
-      DB_USER: "auth-service"
+      DB_USER: "postgres"
       DB_PASSWORD: "postgres"
+    depends_on:
+      - database
   
   password-manager-service:
     build:
@@ -21,11 +23,13 @@ services:
       - 9547:9546
     environment:
       MICRO_ADDRESS: ":9546"
-      DB_NAME: "password-manager"
+      DB_NAME: "postgres"
       DB_HOST: "database"
       DB_PORT: "5432"
-      DB_USER: "password-manager-service"
+      DB_USER: "postgres"
       DB_PASSWORD: "postgres"
+    depends_on:
+      - database
 
   user-service:
     build:
@@ -34,11 +38,13 @@ services:
       - 9548:9546
     environment:
       MICRO_ADDRESS: ":9546"
-      DB_NAME: "user"
+      DB_NAME: "postgres"
       DB_HOST: "database"
       DB_PORT: "5432"
-      DB_USER: "user-service"
+      DB_USER: "postgres"
       DB_PASSWORD: "postgres"
+    depends_on:
+      - database
 
   database:
     image: postgres
