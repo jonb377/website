@@ -1,39 +1,35 @@
 version: '3.1'
 
-consul:
-  command: -server -bootstrap -rejoin
-  image: progrium/consul:latest
-  hostname: "registry"
-  ports:
-    - "8300:8300"
-    - "8400:8400"
-    - "8500:8500"
-    - "8600:53/udp"
-
-api:
-  command: --registry_address=registry:8500 --register_interval=5 --register_ttl=10 api
-  build: .
-  links:
-    - consul
-  ports:
-    - "8080:8080"
-
-proxy:
-  command: --registry_address=registry:8500 --register_interval=5 --register_ttl=10 proxy
-  build: .
-  links:
-  - consul
-  ports:
-  - "8081:8081"
-web:
-  command: --registry_address=registry:8500 --register_interval=5 --register_ttl=10 web
-  build: .
-  links:
-  - consul
-  ports:
-  - "8082:8082"
-
 services:
+  consul:
+    image: consul:latest
+    command: consul agent -dev -log-level=warn -ui -client=0.0.0.0
+    hostname: consul
+    ports:
+      - "8500:8500"
+
+  rabbit:
+    image: rabbitmq:management
+    hostname: rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  microweb:
+    image: microhq/micro
+    command: web --address=0.0.0.0:8080
+    ports:
+      - "80:8080"
+    environment:
+      - MICRO_REGISTRY=consul
+      - MICRO_REGISTRY_ADDRESS=consul
+      - MICRO_API_NAMESPACE=gomicro.api
+    links:
+      - consul
+      - auth-service
+      - password-manager-service
+      - user-service
+
   auth-service:
     build:
       context: ./auth-service
@@ -41,11 +37,18 @@ services:
       - 9546:9546
     environment:
       MICRO_ADDRESS: ":9546"
+      MICRO_REGISTRY: "consul"
+      MICRO_REGISTRY_ADDRESS: "consul"
+      MICRO_BROKER: "rabbit"
+      MICRO_BROKER_ADDRESS: "amqp://gues:gest@rabbit:5672"
       DB_NAME: "postgres"
       DB_HOST: "database"
       DB_PORT: "5432"
       DB_USER: "postgres"
       DB_PASSWORD: "postgres"
+    links:
+      - consul
+      - rabbit
     depends_on:
       - database
   
@@ -56,11 +59,18 @@ services:
       - 9547:9546
     environment:
       MICRO_ADDRESS: ":9546"
+      MICRO_REGISTRY: "consul"
+      MICRO_REGISTRY_ADDRESS: "consul"
+      MICRO_BROKER: "rabbit"
+      MICRO_BROKER_ADDRESS: "amqp://gues:gest@rabbit:5672"
       DB_NAME: "postgres"
       DB_HOST: "database"
       DB_PORT: "5432"
       DB_USER: "postgres"
       DB_PASSWORD: "postgres"
+    links:
+      - consul
+      - rabbit
     depends_on:
       - database
 
@@ -71,11 +81,18 @@ services:
       - 9548:9546
     environment:
       MICRO_ADDRESS: ":9546"
+      MICRO_REGISTRY: "consul"
+      MICRO_REGISTRY_ADDRESS: "consul"
+      MICRO_BROKER: "rabbit"
+      MICRO_BROKER_ADDRESS: "amqp://gues:gest@rabbit:5672"
       DB_NAME: "postgres"
       DB_HOST: "database"
       DB_PORT: "5432"
       DB_USER: "postgres"
       DB_PASSWORD: "postgres"
+    links:
+      - consul
+      - rabbit
     depends_on:
       - database
 
