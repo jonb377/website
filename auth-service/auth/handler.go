@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
     userProto "github.com/jonb377/website/user-service/proto/user"

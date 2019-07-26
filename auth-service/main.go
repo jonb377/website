@@ -3,6 +3,7 @@ package main
 import (
     userProto "github.com/jonb377/website/user-service/proto/user"
     pb "github.com/jonb377/website/auth-service/proto/auth"
+    auth "github.com/jonb377/website/auth-service/auth"
     "fmt"
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/client"
@@ -10,7 +11,7 @@ import (
 )
 
 func main() {
-    db, err := CreateConnection()
+    db, err := auth.CreateConnection()
 
     if err != nil {
         log.Fatalf("Could not connect to DB: %v", err)
@@ -19,7 +20,7 @@ func main() {
     defer db.Close()
 
 
-    db.AutoMigrate(&Session{})
+    db.AutoMigrate(&auth.Session{})
 
     srv := micro.NewService(
         micro.Name("go.micro.api.auth"),
@@ -30,10 +31,10 @@ func main() {
 
 
 
-    if err := pb.RegisterAuthServiceHandler(srv.Server(), &AuthService{
+    if err := pb.RegisterAuthServiceHandler(srv.Server(), &auth.AuthService{
         db: db,
         userClient: userProto.NewUserService("go.micro.api.user", client.DefaultClient),
-        tokenService: &TokenService{},
+        tokenService: &auth.TokenService{},
     }); err != nil {
         fmt.Println(err)
     }
