@@ -2,7 +2,7 @@ package main
 
 import (
     pb "github.com/jonb377/website/user-service/proto/user"
-    auth "github.com/jonb377/website/auth-service"
+    common "github.com/jonb377/website/common"
     "fmt"
     "github.com/micro/go-micro"
     "log"
@@ -25,7 +25,7 @@ func main() {
     srv := micro.NewService(
         micro.Name("go.micro.api.user"),
         micro.Version("latest"),
-        micro.WrapHandler(auth.AuthWrapper),
+        micro.WrapHandler(common.AuthWrapper),
     )
 
     srv.Init()
