@@ -4,12 +4,13 @@ WORKDIR /go/src/github.com/jonb377/website/auth-service
 
 ENV GOPATH=/go
 
-RUN go get -u github.com/golang/dep/cmd/dep
+COPY go.mod .
+
+RUN GO111MODULE=on go mod download
 
 COPY . .
 
-RUN dep init && dep ensure
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo .
+RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo .
 
 FROM alpine:latest
 
