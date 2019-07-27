@@ -7,6 +7,8 @@ import (
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/server"
     "log"
+    _ "github.com/micro/go-plugins/broker/rabbitmq"
+    _ "github.com/micro/go-plugins/registry/kubernetes"
 )
 
 const serviceName = "go.micro.api.user"

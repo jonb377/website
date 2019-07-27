@@ -8,6 +8,8 @@ import (
     "github.com/micro/go-micro/client"
     "github.com/micro/go-micro/server"
     "log"
+    _ "github.com/micro/go-plugins/broker/rabbitmq"
+    _ "github.com/micro/go-plugins/registry/kubernetes"
 )
 
 const serviceName = "go.micro.api.auth"
@@ -38,7 +40,7 @@ func RunAuthService() {
     srv.Init()
 
     if err := pb.RegisterAuthServiceHandler(srv.Server(), &AuthService{
-        db: db,
+        db: nil,
         userClient: userProto.NewUserService("go.micro.api.user", client.DefaultClient),
         tokenService: &TokenService{},
     }); err != nil {

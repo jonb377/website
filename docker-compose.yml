@@ -38,7 +38,7 @@ services:
     environment:
       MICRO_REGISTRY: "consul"
       MICRO_REGISTRY_ADDRESS: "consul"
-      MICRO_BROKER: "rabbit"
+      MICRO_BROKER: "rabbitmq"
       MICRO_BROKER_ADDRESS: "amqp://gues:gest@rabbit:5672"
       DB_NAME: "postgres"
       DB_HOST: "database"
@@ -59,7 +59,7 @@ services:
     environment:
       MICRO_REGISTRY: "consul"
       MICRO_REGISTRY_ADDRESS: "consul"
-      MICRO_BROKER: "rabbit"
+      MICRO_BROKER: "rabbitmq"
       MICRO_BROKER_ADDRESS: "amqp://gues:gest@rabbit:5672"
       DB_NAME: "postgres"
       DB_HOST: "database"
@@ -80,7 +80,7 @@ services:
     environment:
       MICRO_REGISTRY: "consul"
       MICRO_REGISTRY_ADDRESS: "consul"
-      MICRO_BROKER: "rabbit"
+      MICRO_BROKER: "rabbitmq"
       MICRO_BROKER_ADDRESS: "amqp://gues:gest@rabbit:5672"
       DB_NAME: "postgres"
       DB_HOST: "database"
