@@ -1,4 +1,4 @@
-package main
+package passwordmanager
 
 import (
     pb "github.com/jonb377/website/password-manager-service/proto/password-manager"

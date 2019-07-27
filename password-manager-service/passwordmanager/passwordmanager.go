@@ -1,18 +1,17 @@
-package auth
+package passwordmanager
 
 import (
-    userProto "github.com/jonb377/website/user-service/proto/user"
-    pb "github.com/jonb377/website/auth-service/proto/auth"
+    pb "github.com/jonb377/website/password-manager-service/proto/password-manager"
+    common "github.com/jonb377/website/common"
     "fmt"
     "github.com/micro/go-micro"
-    "github.com/micro/go-micro/client"
     "github.com/micro/go-micro/server"
     "log"
 )
 
-const serviceName = "go.micro.api.auth"
+const serviceName = "go.micro.api.passwordmanager"
 
-func RunAuthService() {
+func RunPasswordManagerService() {
     db, err := CreateConnection()
 
     if err != nil {
@@ -22,11 +21,12 @@ func RunAuthService() {
     defer db.Close()
 
 
-    db.AutoMigrate(&Session{})
+    db.AutoMigrate(&PasswordEntry{})
 
     srv := micro.NewService(
         micro.Name(serviceName),
         micro.Version("latest"),
+        micro.WrapHandler(common.AuthWrapper),
         server.Server(
             server.Name(serviceName),
             server.Address(":8080"),
@@ -35,10 +35,8 @@ func RunAuthService() {
 
     srv.Init()
 
-    if err := pb.RegisterAuthServiceHandler(srv.Server(), &AuthService{
+    if err := pb.RegisterPasswordManagerServiceHandler(srv.Server(), &PasswordManagerService{
         db: db,
-        userClient: userProto.NewUserService("go.micro.api.user", client.DefaultClient),
-        tokenService: &TokenService{},
     }); err != nil {
         fmt.Println(err)
     }

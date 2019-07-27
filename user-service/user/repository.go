@@ -1,4 +1,4 @@
-package main
+package user
 
 import (
     pb "github.com/jonb377/website/user-service/proto/user"

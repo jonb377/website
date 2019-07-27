@@ -1,18 +1,17 @@
-package auth
+package user
 
 import (
-    userProto "github.com/jonb377/website/user-service/proto/user"
-    pb "github.com/jonb377/website/auth-service/proto/auth"
+    pb "github.com/jonb377/website/user-service/proto/user"
+    common "github.com/jonb377/website/common"
     "fmt"
     "github.com/micro/go-micro"
-    "github.com/micro/go-micro/client"
     "github.com/micro/go-micro/server"
     "log"
 )
 
-const serviceName = "go.micro.api.auth"
+const serviceName = "go.micro.api.user"
 
-func RunAuthService() {
+func RunUserService() {
     db, err := CreateConnection()
 
     if err != nil {
@@ -21,12 +20,15 @@ func RunAuthService() {
 
     defer db.Close()
 
+    db.AutoMigrate(&User{})
+    db.AutoMigrate(&Device{})
 
-    db.AutoMigrate(&Session{})
+    repo := &UserRepository{db}
 
     srv := micro.NewService(
         micro.Name(serviceName),
         micro.Version("latest"),
+        micro.WrapHandler(common.AuthWrapper),
         server.Server(
             server.Name(serviceName),
             server.Address(":8080"),
@@ -35,11 +37,7 @@ func RunAuthService() {
 
     srv.Init()
 
-    if err := pb.RegisterAuthServiceHandler(srv.Server(), &AuthService{
-        db: db,
-        userClient: userProto.NewUserService("go.micro.api.user", client.DefaultClient),
-        tokenService: &TokenService{},
-    }); err != nil {
+    if err := pb.RegisterUserServiceHandler(srv.Server(), &service{repo}); err != nil {
         fmt.Println(err)
     }
 
