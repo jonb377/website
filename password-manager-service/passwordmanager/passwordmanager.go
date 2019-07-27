@@ -27,9 +27,11 @@ func RunPasswordManagerService() {
         micro.Name(serviceName),
         micro.Version("latest"),
         micro.WrapHandler(common.AuthWrapper),
-        server.Server(
-            server.Name(serviceName),
-            server.Address(":8080"),
+        micro.Server(
+            micro.NewServer(
+                server.Name(serviceName),
+                server.Address(":8080"),
+            ),
         ),
     )
 

@@ -27,9 +27,11 @@ func RunAuthService() {
     srv := micro.NewService(
         micro.Name(serviceName),
         micro.Version("latest"),
-        server.Server(
-            server.Name(serviceName),
-            server.Address(":8080"),
+        micro.Server(
+            server.NewServer(
+                server.Name(serviceName),
+                server.Address(":8080"),
+            ),
         ),
     )
 
