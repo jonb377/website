@@ -9,7 +9,7 @@ type service struct {
     repo Repository
 }
 
-func (srv *service) RegisterUser(ctx context.Context, req *pb.RegisterRequest, resp *pb.Empty) error {
+func (srv *service) Register(ctx context.Context, req *pb.RegisterRequest, resp *pb.Empty) error {
     if err := srv.repo.CreateUser(req); err != nil {
         return err
     }

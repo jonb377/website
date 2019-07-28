@@ -41,7 +41,7 @@ func (repo *UserRepository) CreateUser(req *pb.RegisterRequest) error {
         Salt:      req.Salt,
         Verifier:  req.Verifier,
     }
-    if err := repo.db.Create(user).Error; err != nil {
+    if err := repo.db.Create(&user).Error; err != nil {
         return err
     }
     return nil
@@ -52,7 +52,7 @@ func (repo *UserRepository) AddDevice(req *pb.AddDeviceRequest) error {
         Guid: req.Device,
         Username: req.Username,
     }
-    if err := repo.db.Create(device).Error; err != nil {
+    if err := repo.db.Create(&device).Error; err != nil {
         return err
     }
     return nil

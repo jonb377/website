@@ -31,7 +31,7 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Client API for PasswordManagerService service
+// Client API for PasswordManager service
 
 type PasswordManagerService interface {
 	UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, opts ...client.CallOption) (*Empty, error)
@@ -57,7 +57,7 @@ func NewPasswordManagerService(name string, c client.Client) PasswordManagerServ
 }
 
 func (c *passwordManagerService) UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, opts ...client.CallOption) (*Empty, error) {
-	req := c.c.NewRequest(c.name, "PasswordManagerService.UpdatePassword", in)
+	req := c.c.NewRequest(c.name, "PasswordManager.UpdatePassword", in)
 	out := new(Empty)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -67,7 +67,7 @@ func (c *passwordManagerService) UpdatePassword(ctx context.Context, in *UpdateP
 }
 
 func (c *passwordManagerService) ListPasswords(ctx context.Context, in *ListPasswordRequest, opts ...client.CallOption) (*ListPasswordResponse, error) {
-	req := c.c.NewRequest(c.name, "PasswordManagerService.ListPasswords", in)
+	req := c.c.NewRequest(c.name, "PasswordManager.ListPasswords", in)
 	out := new(ListPasswordResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -76,33 +76,33 @@ func (c *passwordManagerService) ListPasswords(ctx context.Context, in *ListPass
 	return out, nil
 }
 
-// Server API for PasswordManagerService service
+// Server API for PasswordManager service
 
-type PasswordManagerServiceHandler interface {
+type PasswordManagerHandler interface {
 	UpdatePassword(context.Context, *UpdatePasswordRequest, *Empty) error
 	ListPasswords(context.Context, *ListPasswordRequest, *ListPasswordResponse) error
 }
 
-func RegisterPasswordManagerServiceHandler(s server.Server, hdlr PasswordManagerServiceHandler, opts ...server.HandlerOption) error {
-	type passwordManagerService interface {
+func RegisterPasswordManagerHandler(s server.Server, hdlr PasswordManagerHandler, opts ...server.HandlerOption) error {
+	type passwordManager interface {
 		UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, out *Empty) error
 		ListPasswords(ctx context.Context, in *ListPasswordRequest, out *ListPasswordResponse) error
 	}
-	type PasswordManagerService struct {
-		passwordManagerService
+	type PasswordManager struct {
+		passwordManager
 	}
-	h := &passwordManagerServiceHandler{hdlr}
-	return s.Handle(s.NewHandler(&PasswordManagerService{h}, opts...))
+	h := &passwordManagerHandler{hdlr}
+	return s.Handle(s.NewHandler(&PasswordManager{h}, opts...))
 }
 
-type passwordManagerServiceHandler struct {
-	PasswordManagerServiceHandler
+type passwordManagerHandler struct {
+	PasswordManagerHandler
 }
 
-func (h *passwordManagerServiceHandler) UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, out *Empty) error {
-	return h.PasswordManagerServiceHandler.UpdatePassword(ctx, in, out)
+func (h *passwordManagerHandler) UpdatePassword(ctx context.Context, in *UpdatePasswordRequest, out *Empty) error {
+	return h.PasswordManagerHandler.UpdatePassword(ctx, in, out)
 }
 
-func (h *passwordManagerServiceHandler) ListPasswords(ctx context.Context, in *ListPasswordRequest, out *ListPasswordResponse) error {
-	return h.PasswordManagerServiceHandler.ListPasswords(ctx, in, out)
+func (h *passwordManagerHandler) ListPasswords(ctx context.Context, in *ListPasswordRequest, out *ListPasswordResponse) error {
+	return h.PasswordManagerHandler.ListPasswords(ctx, in, out)
 }

@@ -31,7 +31,7 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Client API for AuthService service
+// Client API for Auth service
 
 type AuthService interface {
 	CreateConnection(ctx context.Context, in *CreateConnectionRequest, opts ...client.CallOption) (*CreateConnectionResponse, error)
@@ -59,7 +59,7 @@ func NewAuthService(name string, c client.Client) AuthService {
 }
 
 func (c *authService) CreateConnection(ctx context.Context, in *CreateConnectionRequest, opts ...client.CallOption) (*CreateConnectionResponse, error) {
-	req := c.c.NewRequest(c.name, "AuthService.CreateConnection", in)
+	req := c.c.NewRequest(c.name, "Auth.CreateConnection", in)
 	out := new(CreateConnectionResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -69,7 +69,7 @@ func (c *authService) CreateConnection(ctx context.Context, in *CreateConnection
 }
 
 func (c *authService) ConnectionChallenge(ctx context.Context, in *ConnectionChallengeRequest, opts ...client.CallOption) (*ConnectionChallengeResponse, error) {
-	req := c.c.NewRequest(c.name, "AuthService.ConnectionChallenge", in)
+	req := c.c.NewRequest(c.name, "Auth.ConnectionChallenge", in)
 	out := new(ConnectionChallengeResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -79,7 +79,7 @@ func (c *authService) ConnectionChallenge(ctx context.Context, in *ConnectionCha
 }
 
 func (c *authService) ValidateToken(ctx context.Context, in *ValidateTokenRequest, opts ...client.CallOption) (*ValidateTokenResponse, error) {
-	req := c.c.NewRequest(c.name, "AuthService.ValidateToken", in)
+	req := c.c.NewRequest(c.name, "Auth.ValidateToken", in)
 	out := new(ValidateTokenResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -89,7 +89,7 @@ func (c *authService) ValidateToken(ctx context.Context, in *ValidateTokenReques
 }
 
 func (c *authService) CloseConnection(ctx context.Context, in *CloseConnectionRequest, opts ...client.CallOption) (*Empty, error) {
-	req := c.c.NewRequest(c.name, "AuthService.CloseConnection", in)
+	req := c.c.NewRequest(c.name, "Auth.CloseConnection", in)
 	out := new(Empty)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -98,45 +98,45 @@ func (c *authService) CloseConnection(ctx context.Context, in *CloseConnectionRe
 	return out, nil
 }
 
-// Server API for AuthService service
+// Server API for Auth service
 
-type AuthServiceHandler interface {
+type AuthHandler interface {
 	CreateConnection(context.Context, *CreateConnectionRequest, *CreateConnectionResponse) error
 	ConnectionChallenge(context.Context, *ConnectionChallengeRequest, *ConnectionChallengeResponse) error
 	ValidateToken(context.Context, *ValidateTokenRequest, *ValidateTokenResponse) error
 	CloseConnection(context.Context, *CloseConnectionRequest, *Empty) error
 }
 
-func RegisterAuthServiceHandler(s server.Server, hdlr AuthServiceHandler, opts ...server.HandlerOption) error {
-	type authService interface {
+func RegisterAuthHandler(s server.Server, hdlr AuthHandler, opts ...server.HandlerOption) error {
+	type auth interface {
 		CreateConnection(ctx context.Context, in *CreateConnectionRequest, out *CreateConnectionResponse) error
 		ConnectionChallenge(ctx context.Context, in *ConnectionChallengeRequest, out *ConnectionChallengeResponse) error
 		ValidateToken(ctx context.Context, in *ValidateTokenRequest, out *ValidateTokenResponse) error
 		CloseConnection(ctx context.Context, in *CloseConnectionRequest, out *Empty) error
 	}
-	type AuthService struct {
-		authService
+	type Auth struct {
+		auth
 	}
-	h := &authServiceHandler{hdlr}
-	return s.Handle(s.NewHandler(&AuthService{h}, opts...))
+	h := &authHandler{hdlr}
+	return s.Handle(s.NewHandler(&Auth{h}, opts...))
 }
 
-type authServiceHandler struct {
-	AuthServiceHandler
+type authHandler struct {
+	AuthHandler
 }
 
-func (h *authServiceHandler) CreateConnection(ctx context.Context, in *CreateConnectionRequest, out *CreateConnectionResponse) error {
-	return h.AuthServiceHandler.CreateConnection(ctx, in, out)
+func (h *authHandler) CreateConnection(ctx context.Context, in *CreateConnectionRequest, out *CreateConnectionResponse) error {
+	return h.AuthHandler.CreateConnection(ctx, in, out)
 }
 
-func (h *authServiceHandler) ConnectionChallenge(ctx context.Context, in *ConnectionChallengeRequest, out *ConnectionChallengeResponse) error {
-	return h.AuthServiceHandler.ConnectionChallenge(ctx, in, out)
+func (h *authHandler) ConnectionChallenge(ctx context.Context, in *ConnectionChallengeRequest, out *ConnectionChallengeResponse) error {
+	return h.AuthHandler.ConnectionChallenge(ctx, in, out)
 }
 
-func (h *authServiceHandler) ValidateToken(ctx context.Context, in *ValidateTokenRequest, out *ValidateTokenResponse) error {
-	return h.AuthServiceHandler.ValidateToken(ctx, in, out)
+func (h *authHandler) ValidateToken(ctx context.Context, in *ValidateTokenRequest, out *ValidateTokenResponse) error {
+	return h.AuthHandler.ValidateToken(ctx, in, out)
 }
 
-func (h *authServiceHandler) CloseConnection(ctx context.Context, in *CloseConnectionRequest, out *Empty) error {
-	return h.AuthServiceHandler.CloseConnection(ctx, in, out)
+func (h *authHandler) CloseConnection(ctx context.Context, in *CloseConnectionRequest, out *Empty) error {
+	return h.AuthHandler.CloseConnection(ctx, in, out)
 }

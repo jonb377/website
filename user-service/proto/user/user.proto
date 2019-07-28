@@ -28,8 +28,8 @@ message AddDeviceRequest {
     string Device = 2;
 }
 
-service UserService {
-    rpc RegisterUser(RegisterRequest) returns (Empty) {}
+service User {
+    rpc Register(RegisterRequest) returns (Empty) {}
     rpc GetVerifier(VerifierRequest) returns (VerifierResponse) {}
     rpc AddDevice(AddDeviceRequest) returns (Empty) {}
 }

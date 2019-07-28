@@ -6,6 +6,8 @@ import (
     "fmt"
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/server"
+    "github.com/micro/micro/plugin"
+    rpc "github.com/micro/go-plugins/micro/disable_rpc"
     "log"
     _ "github.com/micro/go-plugins/broker/rabbitmq"
     _ "github.com/micro/go-plugins/registry/kubernetes"
@@ -14,6 +16,9 @@ import (
 const serviceName = "go.micro.api.passwordmanager"
 
 func RunPasswordManagerService() {
+    // Disable requests to /rpc
+    plugin.Register(rpc.NewPlugin())
+
     db, err := CreateConnection()
 
     if err != nil {
@@ -39,7 +44,7 @@ func RunPasswordManagerService() {
 
     srv.Init()
 
-    if err := pb.RegisterPasswordManagerServiceHandler(srv.Server(), &PasswordManagerService{
+    if err := pb.RegisterPasswordManagerHandler(srv.Server(), &PasswordManagerService{
         db: db,
     }); err != nil {
         fmt.Println(err)

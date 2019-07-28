@@ -1,6 +1,5 @@
 build:
 	protoc -I. --micro_out=. --go_out=plugins=micro:. proto/auth/auth.proto
-	GOOS=linux GOARCH=amd64 go build
 	docker build -t auth-service:latest .
 
 run:
