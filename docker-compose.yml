@@ -36,15 +36,14 @@ services:
       - "15672:15672"
 
   api:
-    image: microhq/micro
-    command: api --address=:80 
-    environment:
-      - MICRO_REGISTRY=consul
-      - MICRO_REGISTRY_ADDRESS=consul
-      - MICRO_API_NAMESPACE=go.micro.api
-      - MICRO_API_HANDLER=api
+    build:
+      context: ./router-service
     ports:
-      - "80:80"
+      - "80:8080"
+    restart: always
+    depends_on:
+      - consul
+      - rabbit
 
   microweb:
     image: microhq/micro

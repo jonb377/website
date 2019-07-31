@@ -1,23 +1,15 @@
-FROM golang:1.12.0 as builder
+FROM website:latest as builder
 
-WORKDIR /go/src/github.com/jonb377/website/user-service
+WORKDIR /go/src/github.com/jonb377/website
 
-ENV GOPATH=/go
-
-COPY go.mod .
-
-RUN GO111MODULE=on go mod download
-
-COPY . .
-
-RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o user user-service/main.go
 
 FROM alpine:latest
 
 RUN mkdir /app
 WORKDIR /app
-COPY --from=builder /go/src/github.com/jonb377/website/user-service/user-service .
+COPY --from=builder /go/src/github.com/jonb377/website/user .
 
 ENV MICRO_SERVER_ADDRESS=:9546
 
-CMD ["./user-service"]
+CMD ["./user"]

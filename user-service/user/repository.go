@@ -19,7 +19,7 @@ func (repo *UserRepository) GetVerifier(req *pb.VerifierRequest) (*pb.VerifierRe
     var user User
     subquery := repo.db.Table("devices").Select("*").Where("guid = ?", req.Device).QueryExpr()
     if err := repo.db.Table("users").Select("salt, verifier").Where(
-            "username = ? and exists ?",
+            "username = ? and exists (?)",
             req.Username,
             subquery,
         ).First(&user).Error; err != nil {
@@ -42,6 +42,13 @@ func (repo *UserRepository) CreateUser(req *pb.RegisterRequest) error {
         Verifier:  req.Verifier,
     }
     if err := repo.db.Create(&user).Error; err != nil {
+        return err
+    }
+    device := Device{
+        Guid: req.Device,
+        Username: req.Username,
+    }
+    if err := repo.db.Create(&device).Error; err != nil {
         return err
     }
     return nil

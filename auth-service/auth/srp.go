@@ -132,6 +132,10 @@ func (server *SRPServer) VerifyM(M []byte) []byte {
     return server.HAMK
 }
 
+func (s *SRPServer) getKey() []byte {
+    return s.K
+}
+
 func (s *SRPServer) calculate_u() *big.Int {
     paddedA := pad(len(NBytes), s.A.Bytes())
     paddedB := pad(len(NBytes), s.B.Bytes())

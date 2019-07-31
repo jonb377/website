@@ -8,6 +8,7 @@ import (
     "github.com/google/uuid"
     "github.com/jinzhu/gorm"
     "github.com/micro/go-micro/metadata"
+    "fmt"
 )
 
 type AuthService struct {
@@ -38,17 +39,23 @@ func (s *AuthService) CreateConnection(ctx context.Context, req *pb.CreateConnec
     }
     // Create the Session object
     sessionId := uuid.New().String()
-    if err := s.db.Create(Session{
-            SessionID: sessionId,
-            Username: req.Username,
-            Device: device,
-            Key: nil,
-            SRPb: srp.b.Bytes(),
-            SRPA: req.A,
-        }).Error; err != nil {
+    session := Session{
+        SessionID: sessionId,
+        Username: req.Username,
+        Device: device,
+        Key: nil,
+        SRPb: srp.b.Bytes(),
+        SRPA: req.A,
+    }
+    if err := s.db.Create(&session).Error; err != nil {
         return err
     }
     resp.B = srp.B.Bytes()
+    token, err := s.tokenService.Encode(&session)
+    if err != nil {
+        return err
+    }
+    resp.Token = token
     return nil
 }
 
@@ -61,22 +68,40 @@ func (s *AuthService) ConnectionChallenge(ctx context.Context, req *pb.Connectio
     if device == "" {
         return errors.New("device header required")
     }
+    token := md["Token"]
+    claims, err := s.tokenService.Decode(token)
+    if err != nil {
+        fmt.Println("Error response from token service ", err)
+        return err
+    }
+    if claims.Device != device {
+        fmt.Println("Invalid device ", claims.Device, " != ", device)
+        return errors.New(fmt.Sprintf("invalid device %v != %v", claims.Device, device))
+    }
     verifierResponse, err := s.userClient.GetVerifier(context.Background(), &userProto.VerifierRequest{
-        Username: req.Username,
-        Device: device,
+        Username: claims.Username,
+        Device: claims.Device,
     })
     if err != nil {
+        fmt.Println("Error response from user service ", err)
         return err
     }
     var session Session
-    if err := s.db.Table("sessions").Where("session_id = ?", ).First(&session).Error; err != nil {
+    if err := s.db.Table("sessions").Where("session_id = ?", claims.SessionId).First(&session).Error; err != nil {
         return err
     }
-    srp := NewSRPServerWithB(req.Username, verifierResponse.Salt, verifierResponse.Verifier, session.SRPA, session.SRPb)
+    srp := NewSRPServerWithB(claims.Username, verifierResponse.Salt, verifierResponse.Verifier, session.SRPA, session.SRPb)
     HAMK := srp.VerifyM(req.M)
     if HAMK == nil {
         return errors.New("authorization failed")
     }
+
+    // Store the session key
+    key := srp.getKey()
+    if err := s.db.Table("sessions").Where("session_id = ?", claims.SessionId).Update("key", key).Error; err != nil {
+        return err
+    }
+
     resp.HAMK = HAMK
     return nil
 }
@@ -98,8 +123,26 @@ func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRe
     return nil
 }
 
-func (s *AuthService) CloseConnection(ctx context.Context, req *pb.CloseConnectionRequest, resp *pb.Empty) error {
-    if err := s.db.Table("sessions").Where("session_id = ?", req.SessionID).Delete(&Session{}).Error; err != nil {
+func (s *AuthService) CloseConnection(ctx context.Context, req *pb.ConnectionCloseRequest, resp *pb.Empty) error {
+    md, ok := metadata.FromContext(ctx)
+    if !ok {
+        md = metadata.Metadata{}
+    }
+    device := md["Device"]
+    if device == "" {
+        return errors.New("device header required")
+    }
+    token := md["Token"]
+    claims, err := s.tokenService.Decode(token)
+    if err != nil {
+        fmt.Println("Error response from token service ", err)
+        return err
+    }
+    if claims.Device != device {
+        fmt.Println("Invalid device ", claims.Device, " != ", device)
+        return errors.New(fmt.Sprintf("invalid device %v != %v", claims.Device, device))
+    }
+    if err := s.db.Table("sessions").Where("session_id = ?", claims.SessionId).Delete(&Session{}).Error; err != nil {
         return err
     }
     return nil

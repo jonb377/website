@@ -3,6 +3,7 @@ package user
 import (
     pb "github.com/jonb377/website/user-service/proto/user"
     "context"
+    "fmt"
 )
 
 type service struct {
@@ -10,6 +11,7 @@ type service struct {
 }
 
 func (srv *service) Register(ctx context.Context, req *pb.RegisterRequest, resp *pb.Empty) error {
+    fmt.Printf("%+v\n", req)
     if err := srv.repo.CreateUser(req); err != nil {
         return err
     }

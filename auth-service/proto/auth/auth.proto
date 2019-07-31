@@ -9,19 +9,19 @@ message CreateConnectionRequest {
 
 message CreateConnectionResponse {
     bytes B = 1;
+    string Token = 2;
 }
 
 message ConnectionChallengeRequest {
     bytes M = 1;
-    string Username = 2;
 }
 
 message ConnectionChallengeResponse {
     bytes HAMK = 1;
 }
 
-message CloseConnectionRequest {
-    string SessionID = 1;
+message ConnectionCloseRequest {
+    bool A = 1;
 }
 
 message ValidateTokenRequest{
@@ -40,5 +40,5 @@ service Auth {
     rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse) {}
     rpc ConnectionChallenge(ConnectionChallengeRequest) returns (ConnectionChallengeResponse) {}
     rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse) {}
-    rpc CloseConnection(CloseConnectionRequest) returns (Empty) {}
+    rpc CloseConnection(ConnectionCloseRequest) returns (Empty) {}
 }

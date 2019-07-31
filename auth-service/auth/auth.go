@@ -17,6 +17,7 @@ import (
 const serviceName = "go.micro.api.auth"
 
 func RunAuthService() {
+    log.Println("Registering service ", serviceName)
     // Disable requests to /rpc
     plugin.Register(rpc.NewPlugin())
 
@@ -45,7 +46,7 @@ func RunAuthService() {
     srv.Init()
 
     if err := pb.RegisterAuthHandler(srv.Server(), &AuthService{
-        db: nil,
+        db: db,
         userClient: userProto.NewUserService("go.micro.api.user", client.DefaultClient),
         tokenService: &TokenService{},
     }); err != nil {

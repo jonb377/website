@@ -2,7 +2,6 @@ package user
 
 import (
     pb "github.com/jonb377/website/user-service/proto/user"
-    common "github.com/jonb377/website/common"
     "fmt"
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/server"
@@ -13,7 +12,7 @@ import (
     _ "github.com/micro/go-plugins/registry/kubernetes"
 )
 
-const serviceName = "go.micro.api.User"
+const serviceName = "go.micro.api.user"
 
 func RunUserService() {
     // Disable requests to /rpc
@@ -35,7 +34,6 @@ func RunUserService() {
     srv := micro.NewService(
         micro.Name(serviceName),
         micro.Version("latest"),
-        micro.WrapHandler(common.AuthWrapper),
         micro.Server(
             server.NewServer(
                 server.Name(serviceName),

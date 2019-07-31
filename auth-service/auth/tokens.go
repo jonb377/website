@@ -34,6 +34,10 @@ func (srv *TokenService) Decode(tokenString string) (*CustomClaims, error) {
         return tokenkey, nil
     })
 
+    if err != nil {
+        return nil, err
+    }
+
     if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
         return claims, nil
     } else {

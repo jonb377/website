@@ -7,8 +7,9 @@ message RegisterRequest {
     string Firstname = 2;
     string Lastname = 3;
     string Email = 4;
-    bytes Salt = 5;
-    bytes Verifier = 6;
+    string Device = 5;
+    bytes Salt = 6;
+    bytes Verifier = 7;
 }
 
 message Empty {}

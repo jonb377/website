@@ -2,7 +2,6 @@ package passwordmanager
 
 import (
     pb "github.com/jonb377/website/password-manager-service/proto/password-manager"
-    common "github.com/jonb377/website/common"
     "fmt"
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/server"
@@ -33,7 +32,6 @@ func RunPasswordManagerService() {
     srv := micro.NewService(
         micro.Name(serviceName),
         micro.Version("latest"),
-        micro.WrapHandler(common.AuthWrapper),
         micro.Server(
             server.NewServer(
                 server.Name(serviceName),
