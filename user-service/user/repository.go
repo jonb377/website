@@ -3,12 +3,14 @@ package user
 import (
     pb "github.com/jonb377/website/user-service/proto/user"
     "github.com/jinzhu/gorm"
+    "time"
 )
 
 type Repository interface {
     GetVerifier(*pb.VerifierRequest) (*pb.VerifierResponse, error)
     CreateUser(*pb.RegisterRequest) error
     AddDevice(*pb.AddDeviceRequest) error
+    InsertAccessKey(string, string) error
 }
 
 type UserRepository struct {
@@ -17,11 +19,19 @@ type UserRepository struct {
 
 func (repo *UserRepository) GetVerifier(req *pb.VerifierRequest) (*pb.VerifierResponse, error) {
     var user User
-    subquery := repo.db.Table("devices").Select("*").Where("guid = ?", req.Device).QueryExpr()
+    deviceQuery := repo.db.Table("devices").Select("*").Where(
+        "username = ? and guid = ?",
+        req.Username,
+        req.Device,
+    ).QueryExpr()
+    accessKeyQuery := repo.db.Table("access_keys").Select("*").Where(
+        "username = ? and key = ? and created_at > extract(epoch from now() - '10 minutes'::interval)",
+        req.Username,
+        req.AccessKey,
+    ).QueryExpr()
     if err := repo.db.Table("users").Select("salt, verifier").Where(
-            "username = ? and exists (?)",
-            req.Username,
-            subquery,
+            "username = ? and (exists (?) or exists (?))",
+            req.Username, deviceQuery, accessKeyQuery,
         ).First(&user).Error; err != nil {
         return nil, err
     }
@@ -63,4 +73,13 @@ func (repo *UserRepository) AddDevice(req *pb.AddDeviceRequest) error {
         return err
     }
     return nil
+}
+
+func (repo *UserRepository) InsertAccessKey(key string, username string) error {
+    accessKey := AccessKey{
+        Username: username,
+        Key: key,
+        CreatedAt: time.Now().Unix(),
+    }
+    return repo.db.Create(&accessKey).Error
 }

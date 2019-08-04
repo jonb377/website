@@ -1,6 +1,6 @@
 build:
 	docker build -t website:latest .
-	docker-compose build
 
 run:
-	docker-compose up
+	docker-compose build
+	docker-compose up --force-recreate

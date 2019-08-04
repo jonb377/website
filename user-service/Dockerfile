@@ -2,6 +2,10 @@ FROM website:latest as builder
 
 WORKDIR /go/src/github.com/jonb377/website
 
+RUN rm -r user-service
+
+COPY . user-service
+
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o user user-service/main.go
 
 FROM alpine:latest

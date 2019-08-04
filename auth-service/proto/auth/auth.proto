@@ -32,6 +32,7 @@ message ValidateTokenRequest{
 message ValidateTokenResponse{
     string SessionID = 1;
     bytes SessionKey = 2;
+    string Username = 3;
 }
 
 message Empty {}

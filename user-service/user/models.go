@@ -1,11 +1,6 @@
 package user
 
-//import (
-//    "github.com/jinzhu/gorm"
-//)
-
 type User struct {
-    //gorm.Model
     Username    string `gorm:"primary_key"`
     FirstName   string
     LastName    string
@@ -15,7 +10,15 @@ type User struct {
 }
 
 type Device struct {
-    //gorm.Model
     Guid        string `gorm:"primary_key"`
     Username    string `sql:"type:varchar REFERENCES users(username)"`
+}
+
+
+// Login using a shared secret
+// Lifespan: 10 minutes
+type AccessKey struct {
+    Username string
+    Key string
+    CreatedAt int64
 }

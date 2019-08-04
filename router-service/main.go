@@ -1,7 +1,7 @@
 package main
 
 import (
-    //jbrouter "github.com/jonb377/website/router-service/router"
+    jbrouter "github.com/jonb377/website/router-service/router"
 	"github.com/micro/go-micro/util/log"
     "github.com/gorilla/mux"
 	"github.com/micro/go-micro"
@@ -21,7 +21,7 @@ const (
     Address     = ":8080"
     Handler     = "api"
     Resolver    = "micro"
-    APIPath     = "/api"
+    APIPath     = "/"
     Namespace   = "go.micro.api"
     serviceName = "go.micro.api.router"
 )
@@ -30,7 +30,8 @@ func main() {
     r := mux.NewRouter()
 
     // Register auth middleware
-    //r.Use(jbrouter.AuthWrapper)
+    r.Use(jbrouter.LogWrapper)
+    r.Use(jbrouter.AuthWrapper)
 
     // Create the service
     service := micro.NewService(
@@ -65,7 +66,7 @@ func main() {
 
     api := httpapi.NewServer(Address)
 	api.Init()
-	api.Handle("/", r)
+	api.Handle(APIPath, r)
 
 	// Start API
 	if err := api.Start(); err != nil {

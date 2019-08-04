@@ -7,8 +7,6 @@ import (
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/client"
     "github.com/micro/go-micro/server"
-    "github.com/micro/micro/plugin"
-    rpc "github.com/micro/go-plugins/micro/disable_rpc"
     "log"
     _ "github.com/micro/go-plugins/broker/rabbitmq"
     _ "github.com/micro/go-plugins/registry/kubernetes"
@@ -18,8 +16,6 @@ const serviceName = "go.micro.api.auth"
 
 func RunAuthService() {
     log.Println("Registering service ", serviceName)
-    // Disable requests to /rpc
-    plugin.Register(rpc.NewPlugin())
 
     db, err := CreateConnection()
 

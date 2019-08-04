@@ -7,27 +7,48 @@ import (
     "net/http"
     "context"
     "bytes"
+    "time"
     "log"
     "fmt"
 )
 
-type myResponseWriter struct {
+type authResponseWriter struct {
     headers http.Header
     body []byte
     status int
 }
 
-func (w *myResponseWriter) Header() http.Header {
+func (w *authResponseWriter) Header() http.Header {
     return w.headers
 }
 
-func (w *myResponseWriter) Write(data []byte) (int, error) {
+func (w *authResponseWriter) Write(data []byte) (int, error) {
     w.body = append(w.body, data...)
     return len(data), nil
 }
 
-func (w *myResponseWriter) WriteHeader(code int) {
+func (w *authResponseWriter) WriteHeader(code int) {
     w.status = code
+}
+
+type logResponseWriter struct {
+    http.ResponseWriter
+    status int
+}
+
+func (w logResponseWriter) WriteHeader(code int) {
+    w.status = code
+    w.ResponseWriter.WriteHeader(code)
+}
+
+func LogWrapper(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        start := time.Now()
+        logWriter := logResponseWriter{w, 200}
+        next.ServeHTTP(logWriter, r)
+        duration := time.Now().Sub(start)
+        log.Println("api: ", r.URL.Path, "\tstatus: ", logWriter.status, "\tduration: ", duration.String())
+    })
 }
 
 
@@ -36,10 +57,14 @@ func (w *myResponseWriter) WriteHeader(code int) {
 func AuthWrapper(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         var err error
-        fmt.Println("Calling the auth wrapper")
+        log.Println("Calling the auth wrapper ", r.URL.Path, fmt.Sprintf("%p", r))
 
-        // Disallow session-id header
+        // Disallow session-id and username header
         if sessid := r.Header["Session-Id"]; len(sessid) != 0 {
+            http.Error(w, "Session-Id header not allowed", http.StatusBadRequest)
+            return
+        }
+        if username := r.Header["Username"]; len(username) != 0 {
             http.Error(w, "Session-Id header not allowed", http.StatusBadRequest)
             return
         }
@@ -51,14 +76,14 @@ func AuthWrapper(next http.Handler) http.Handler {
             return
         }
         device := deviceHeader[0]
-        tokenCookie, err := r.Cookie("Token")
-        if err != nil {
+        tokenHeader := r.Header["Token"]
+        if len(tokenHeader) != 1 {
             // No active token in request
             log.Println("No auth token provided")
             next.ServeHTTP(w, r)
             return
         }
-        tokenString := tokenCookie.String()
+        tokenString := tokenHeader[0]
 
         log.Println("Authenticating with token: ", tokenString)
 
@@ -76,7 +101,20 @@ func AuthWrapper(next http.Handler) http.Handler {
 
         // Set the session-id header to indicate successful authentication
         r.Header["Session-Id"] = []string{tokenResponse.SessionID}
+        r.Header["Username"] = []string{tokenResponse.Username}
 
+        if len(tokenResponse.SessionKey) == 0 {
+            if r.URL.Path == "/auth/ConnectionChallenge" {
+                // No active token in request
+                log.Println("Token not active")
+                next.ServeHTTP(w, r)
+                return
+            } else {
+                log.Println("Session key not set: ", r.URL.Path)
+                http.Error(w, "Session key not set", http.StatusBadRequest)
+                return
+            }
+        }
         // Use the session key to decrypt the data
         cipher := NewAESCipher(tokenResponse.SessionKey)
         body, err := ioutil.ReadAll(r.Body)
@@ -91,10 +129,11 @@ func AuthWrapper(next http.Handler) http.Handler {
             http.Error(w, err.Error(), http.StatusBadRequest)
             return
         }
+        log.Println("Decrypted message body ", string(decrypted))
         r.Body = ioutil.NopCloser(bytes.NewReader(decrypted))
 
         // Use a dummy response writer for the rest of the call
-        respWriter := myResponseWriter{}
+        respWriter := authResponseWriter{headers: make(map[string][]string)}
         next.ServeHTTP(&respWriter, r)
 
         // Copy from the dummy
@@ -103,13 +142,21 @@ func AuthWrapper(next http.Handler) http.Handler {
             w.WriteHeader(respWriter.status)
         }
         for k, v := range respWriter.headers {
-            w.Header()[k] = v
+            log.Println("header ", k, ": ", v)
+            if k != "Content-Length" {
+                w.Header()[k] = v
+            }
         }
+        if len(respWriter.body) == 0 {
+            return
+        }
+        log.Println("encrypting message ", string(respWriter.body), "\tlength ", len(respWriter.body))
         encrypted, err := cipher.Encrypt(respWriter.body)
         if err != nil {
             http.Error(w, err.Error(), http.StatusBadRequest)
             return
         }
+        log.Println("encrypted message ", string(encrypted), "\tlength ", len(encrypted))
         w.Write(encrypted)
     })
 }

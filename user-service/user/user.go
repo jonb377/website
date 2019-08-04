@@ -28,6 +28,7 @@ func RunUserService() {
 
     db.AutoMigrate(&User{})
     db.AutoMigrate(&Device{})
+    db.AutoMigrate(&AccessKey{})
 
     repo := &UserRepository{db}
 

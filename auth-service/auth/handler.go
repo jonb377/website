@@ -9,6 +9,7 @@ import (
     "github.com/jinzhu/gorm"
     "github.com/micro/go-micro/metadata"
     "fmt"
+    "log"
 )
 
 type AuthService struct {
@@ -23,12 +24,14 @@ func (s *AuthService) CreateConnection(ctx context.Context, req *pb.CreateConnec
         md = metadata.Metadata{}
     }
     device := md["Device"]
-    if device == "" {
-        return errors.New("device header required")
+    accessKey := md["Access-Key"]
+    if device == "" && accessKey == "" {
+        return errors.New("device header or access key required")
     }
     verifierResponse, err := s.userClient.GetVerifier(context.Background(), &userProto.VerifierRequest{
         Username: req.Username,
         Device: device,
+        AccessKey: accessKey,
     })
     if err != nil {
         return err
@@ -47,7 +50,7 @@ func (s *AuthService) CreateConnection(ctx context.Context, req *pb.CreateConnec
         SRPb: srp.b.Bytes(),
         SRPA: req.A,
     }
-    if err := s.db.Create(&session).Error; err != nil {
+    if err := s.db.Table("sessions").Create(&session).Error; err != nil {
         return err
     }
     resp.B = srp.B.Bytes()
@@ -64,33 +67,27 @@ func (s *AuthService) ConnectionChallenge(ctx context.Context, req *pb.Connectio
     if !ok {
         md = metadata.Metadata{}
     }
+    session_id := md["Session-Id"]
     device := md["Device"]
-    if device == "" {
-        return errors.New("device header required")
-    }
-    token := md["Token"]
-    claims, err := s.tokenService.Decode(token)
-    if err != nil {
-        fmt.Println("Error response from token service ", err)
-        return err
-    }
-    if claims.Device != device {
-        fmt.Println("Invalid device ", claims.Device, " != ", device)
-        return errors.New(fmt.Sprintf("invalid device %v != %v", claims.Device, device))
+    accessKey := md["Access-Key"]
+    username := md["Username"]
+    if session_id == "" || (device == "" && accessKey == "") || username == "" {
+        return errors.New(fmt.Sprintf("unauthorized: %s %s %s %s", session_id, device, accessKey, username))
     }
     verifierResponse, err := s.userClient.GetVerifier(context.Background(), &userProto.VerifierRequest{
-        Username: claims.Username,
-        Device: claims.Device,
+        Username: username,
+        Device: device,
+        AccessKey: accessKey,
     })
     if err != nil {
         fmt.Println("Error response from user service ", err)
         return err
     }
     var session Session
-    if err := s.db.Table("sessions").Where("session_id = ?", claims.SessionId).First(&session).Error; err != nil {
+    if err := s.db.Table("sessions").Where("session_id = ?", session_id).First(&session).Error; err != nil {
         return err
     }
-    srp := NewSRPServerWithB(claims.Username, verifierResponse.Salt, verifierResponse.Verifier, session.SRPA, session.SRPb)
+    srp := NewSRPServerWithB(username, verifierResponse.Salt, verifierResponse.Verifier, session.SRPA, session.SRPb)
     HAMK := srp.VerifyM(req.M)
     if HAMK == nil {
         return errors.New("authorization failed")
@@ -98,28 +95,11 @@ func (s *AuthService) ConnectionChallenge(ctx context.Context, req *pb.Connectio
 
     // Store the session key
     key := srp.getKey()
-    if err := s.db.Table("sessions").Where("session_id = ?", claims.SessionId).Update("key", key).Error; err != nil {
+    if err := s.db.Model(&session).Update("key", key).Error; err != nil {
         return err
     }
 
     resp.HAMK = HAMK
-    return nil
-}
-
-func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest, resp *pb.ValidateTokenResponse) error {
-    claims, err := s.tokenService.Decode(req.Token)
-    if err != nil {
-        return err
-    }
-    var session Session
-    if err = s.db.Table("sessions").Where("session_id = ?", claims.SessionId).First(&session).Error; err != nil {
-        return err
-    }
-    if session.Device != req.Device {
-        return errors.New("device is not authorized for session")
-    }
-    resp.SessionKey = session.Key
-    resp.SessionID = session.SessionID
     return nil
 }
 
@@ -128,22 +108,40 @@ func (s *AuthService) CloseConnection(ctx context.Context, req *pb.ConnectionClo
     if !ok {
         md = metadata.Metadata{}
     }
-    device := md["Device"]
-    if device == "" {
-        return errors.New("device header required")
+    session_id := md["Session-Id"]
+    if session_id == "" {
+        return errors.New("No active session on CloseConnection call")
     }
-    token := md["Token"]
-    claims, err := s.tokenService.Decode(token)
-    if err != nil {
-        fmt.Println("Error response from token service ", err)
+    log.Println("Attempting to delete session_id ", session_id)
+    if err := s.db.Delete(&Session{SessionID: session_id}).Error; err != nil {
         return err
     }
-    if claims.Device != device {
-        fmt.Println("Invalid device ", claims.Device, " != ", device)
-        return errors.New(fmt.Sprintf("invalid device %v != %v", claims.Device, device))
-    }
-    if err := s.db.Table("sessions").Where("session_id = ?", claims.SessionId).Delete(&Session{}).Error; err != nil {
-        return err
-    }
+    log.Println("Successfully deleted session")
     return nil
 }
+
+func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest, resp *pb.ValidateTokenResponse) error {
+    claims, err := s.tokenService.Decode(req.Token)
+    if err != nil {
+        return err
+    }
+    log.Printf("Found claims from token: %v\n", claims)
+    var session Session
+    if err = s.db.Table("sessions").Where("session_id = ?", claims.SessionId).First(&session).Error; err != nil {
+        return err
+    }
+    log.Println("Found session: ", session.SessionID)
+
+    // Verify the request is authorized to use the token
+    if session.Device != req.Device {
+        return errors.New("device is not authorized for session")
+    } else if session.Username != claims.Username {
+        return errors.New("user is not authorized for session")
+    }
+
+    resp.SessionKey = session.Key
+    resp.SessionID = session.SessionID
+    resp.Username = session.Username
+    return nil
+}
+

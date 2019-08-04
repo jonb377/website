@@ -37,6 +37,7 @@ type UserService interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...client.CallOption) (*Empty, error)
 	GetVerifier(ctx context.Context, in *VerifierRequest, opts ...client.CallOption) (*VerifierResponse, error)
 	AddDevice(ctx context.Context, in *AddDeviceRequest, opts ...client.CallOption) (*Empty, error)
+	GetAccessKey(ctx context.Context, in *Empty, opts ...client.CallOption) (*AccessKeyResponse, error)
 }
 
 type userService struct {
@@ -87,12 +88,23 @@ func (c *userService) AddDevice(ctx context.Context, in *AddDeviceRequest, opts 
 	return out, nil
 }
 
+func (c *userService) GetAccessKey(ctx context.Context, in *Empty, opts ...client.CallOption) (*AccessKeyResponse, error) {
+	req := c.c.NewRequest(c.name, "User.GetAccessKey", in)
+	out := new(AccessKeyResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for User service
 
 type UserHandler interface {
 	Register(context.Context, *RegisterRequest, *Empty) error
 	GetVerifier(context.Context, *VerifierRequest, *VerifierResponse) error
 	AddDevice(context.Context, *AddDeviceRequest, *Empty) error
+	GetAccessKey(context.Context, *Empty, *AccessKeyResponse) error
 }
 
 func RegisterUserHandler(s server.Server, hdlr UserHandler, opts ...server.HandlerOption) error {
@@ -100,6 +112,7 @@ func RegisterUserHandler(s server.Server, hdlr UserHandler, opts ...server.Handl
 		Register(ctx context.Context, in *RegisterRequest, out *Empty) error
 		GetVerifier(ctx context.Context, in *VerifierRequest, out *VerifierResponse) error
 		AddDevice(ctx context.Context, in *AddDeviceRequest, out *Empty) error
+		GetAccessKey(ctx context.Context, in *Empty, out *AccessKeyResponse) error
 	}
 	type User struct {
 		user
@@ -122,4 +135,8 @@ func (h *userHandler) GetVerifier(ctx context.Context, in *VerifierRequest, out 
 
 func (h *userHandler) AddDevice(ctx context.Context, in *AddDeviceRequest, out *Empty) error {
 	return h.UserHandler.AddDevice(ctx, in, out)
+}
+
+func (h *userHandler) GetAccessKey(ctx context.Context, in *Empty, out *AccessKeyResponse) error {
+	return h.UserHandler.GetAccessKey(ctx, in, out)
 }

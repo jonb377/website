@@ -4,6 +4,7 @@ import (
     "crypto/rand"
     "github.com/dgrijalva/jwt-go"
     "time"
+    "log"
 )
 
 var tokenkey []byte
@@ -30,10 +31,12 @@ type Authable interface {
 type TokenService struct {}
 
 func (srv *TokenService) Decode(tokenString string) (*CustomClaims, error) {
+    log.Println("Decoding the token: ", tokenString)
     token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
         return tokenkey, nil
     })
 
+    log.Println("Response: ", token, err)
     if err != nil {
         return nil, err
     }
