@@ -37,7 +37,7 @@ type AuthService interface {
 	CreateConnection(ctx context.Context, in *CreateConnectionRequest, opts ...client.CallOption) (*CreateConnectionResponse, error)
 	ConnectionChallenge(ctx context.Context, in *ConnectionChallengeRequest, opts ...client.CallOption) (*ConnectionChallengeResponse, error)
 	ValidateToken(ctx context.Context, in *ValidateTokenRequest, opts ...client.CallOption) (*ValidateTokenResponse, error)
-	CloseConnection(ctx context.Context, in *ConnectionCloseRequest, opts ...client.CallOption) (*Empty, error)
+	CloseConnection(ctx context.Context, in *Empty, opts ...client.CallOption) (*Empty, error)
 }
 
 type authService struct {
@@ -88,7 +88,7 @@ func (c *authService) ValidateToken(ctx context.Context, in *ValidateTokenReques
 	return out, nil
 }
 
-func (c *authService) CloseConnection(ctx context.Context, in *ConnectionCloseRequest, opts ...client.CallOption) (*Empty, error) {
+func (c *authService) CloseConnection(ctx context.Context, in *Empty, opts ...client.CallOption) (*Empty, error) {
 	req := c.c.NewRequest(c.name, "Auth.CloseConnection", in)
 	out := new(Empty)
 	err := c.c.Call(ctx, req, out, opts...)
@@ -104,7 +104,7 @@ type AuthHandler interface {
 	CreateConnection(context.Context, *CreateConnectionRequest, *CreateConnectionResponse) error
 	ConnectionChallenge(context.Context, *ConnectionChallengeRequest, *ConnectionChallengeResponse) error
 	ValidateToken(context.Context, *ValidateTokenRequest, *ValidateTokenResponse) error
-	CloseConnection(context.Context, *ConnectionCloseRequest, *Empty) error
+	CloseConnection(context.Context, *Empty, *Empty) error
 }
 
 func RegisterAuthHandler(s server.Server, hdlr AuthHandler, opts ...server.HandlerOption) error {
@@ -112,7 +112,7 @@ func RegisterAuthHandler(s server.Server, hdlr AuthHandler, opts ...server.Handl
 		CreateConnection(ctx context.Context, in *CreateConnectionRequest, out *CreateConnectionResponse) error
 		ConnectionChallenge(ctx context.Context, in *ConnectionChallengeRequest, out *ConnectionChallengeResponse) error
 		ValidateToken(ctx context.Context, in *ValidateTokenRequest, out *ValidateTokenResponse) error
-		CloseConnection(ctx context.Context, in *ConnectionCloseRequest, out *Empty) error
+		CloseConnection(ctx context.Context, in *Empty, out *Empty) error
 	}
 	type Auth struct {
 		auth
@@ -137,6 +137,6 @@ func (h *authHandler) ValidateToken(ctx context.Context, in *ValidateTokenReques
 	return h.AuthHandler.ValidateToken(ctx, in, out)
 }
 
-func (h *authHandler) CloseConnection(ctx context.Context, in *ConnectionCloseRequest, out *Empty) error {
+func (h *authHandler) CloseConnection(ctx context.Context, in *Empty, out *Empty) error {
 	return h.AuthHandler.CloseConnection(ctx, in, out)
 }

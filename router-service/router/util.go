@@ -2,7 +2,10 @@ package router
 
 import (
     authService "github.com/jonb377/website/auth-service/proto/auth"
+    "github.com/micro/go-micro/util/ctx"
     "github.com/micro/go-micro/client"
+    "encoding/json"
+    "reflect"
     "io/ioutil"
     "net/http"
     "context"
@@ -104,7 +107,7 @@ func AuthWrapper(next http.Handler) http.Handler {
         r.Header["Username"] = []string{tokenResponse.Username}
 
         if len(tokenResponse.SessionKey) == 0 {
-            if r.URL.Path == "/auth/ConnectionChallenge" {
+            if r.URL.Path == "/api/auth/connection/challenge" {
                 // No active token in request
                 log.Println("Token not active")
                 next.ServeHTTP(w, r)
@@ -160,3 +163,41 @@ func AuthWrapper(next http.Handler) http.Handler {
         w.Write(encrypted)
     })
 }
+
+// Convert an HTTP request to an internal RPC call
+func RPCCall(f interface{}, req interface{}) func(http.ResponseWriter, *http.Request) {
+    return func(w http.ResponseWriter, r *http.Request) {
+        log.Println("In RPCCall")
+        log.Printf("Function type: %T\n", f)
+
+        body, err := ioutil.ReadAll(r.Body)
+        if err != nil {
+            log.Println("Error: ", err.Error())
+            http.Error(w, err.Error(), http.StatusBadRequest)
+            return
+        }
+        json.Unmarshal(body, req)
+        log.Println("Body: ", req)
+
+        // Disgusting reflection
+        cx := ctx.FromRequest(r)
+        vf := reflect.ValueOf(f)
+        vres := vf.Call([]reflect.Value{reflect.ValueOf(cx), reflect.ValueOf(req)})
+        resp, ierr := vres[0].Interface(), vres[1].Interface()
+
+        if ierr != nil {
+            log.Println("Error: ", ierr.(error).Error())
+            http.Error(w, ierr.(error).Error(), http.StatusInternalServerError)
+            return
+        }
+        data, err := json.Marshal(resp)
+        if err != nil {
+            log.Println("Error: ", err.Error())
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        log.Println("Result: ", string(data))
+        w.Write(data)
+    }
+}
+

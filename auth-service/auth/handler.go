@@ -103,7 +103,7 @@ func (s *AuthService) ConnectionChallenge(ctx context.Context, req *pb.Connectio
     return nil
 }
 
-func (s *AuthService) CloseConnection(ctx context.Context, req *pb.ConnectionCloseRequest, resp *pb.Empty) error {
+func (s *AuthService) CloseConnection(ctx context.Context, req *pb.Empty, resp *pb.Empty) error {
     md, ok := metadata.FromContext(ctx)
     if !ok {
         md = metadata.Metadata{}

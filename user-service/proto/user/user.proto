@@ -25,12 +25,6 @@ message VerifierResponse {
     bytes Salt = 2;
 }
 
-message AddDeviceRequest {
-    string Username = 1;
-    string Device = 2;
-    bytes AccessKey = 3;
-}
-
 message AccessKeyResponse {
     string AccessKey = 1;
 }
@@ -38,6 +32,6 @@ message AccessKeyResponse {
 service User {
     rpc Register(RegisterRequest) returns (Empty) {}
     rpc GetVerifier(VerifierRequest) returns (VerifierResponse) {}
-    rpc AddDevice(AddDeviceRequest) returns (Empty) {}
+    rpc AddDevice(Empty) returns (Empty) {}
     rpc GetAccessKey(Empty) returns (AccessKeyResponse) {}
 }

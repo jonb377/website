@@ -10,7 +10,7 @@ import (
     _ "github.com/micro/go-plugins/registry/kubernetes"
 )
 
-const serviceName = "go.micro.api.PasswordManager"
+const serviceName = "go.micro.api.passwordmanager"
 
 func RunPasswordManagerService() {
     db, err := CreateConnection()
