@@ -1,0 +1,6 @@
+**/Makefile
+**/*.proto
+.git/
+**/Dockerfile
+*.yml
+**/.gitignore

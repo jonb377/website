@@ -36,8 +36,9 @@ var _ server.Option
 type UserService interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...client.CallOption) (*Empty, error)
 	GetVerifier(ctx context.Context, in *VerifierRequest, opts ...client.CallOption) (*VerifierResponse, error)
-	AddDevice(ctx context.Context, in *AddDeviceRequest, opts ...client.CallOption) (*Empty, error)
+	RegisterDevice(ctx context.Context, in *Empty, opts ...client.CallOption) (*RegisterDeviceResponse, error)
 	GetAccessKey(ctx context.Context, in *Empty, opts ...client.CallOption) (*AccessKeyResponse, error)
+	Logout(ctx context.Context, in *Empty, opts ...client.CallOption) (*LogoutResponse, error)
 }
 
 type userService struct {
@@ -78,9 +79,9 @@ func (c *userService) GetVerifier(ctx context.Context, in *VerifierRequest, opts
 	return out, nil
 }
 
-func (c *userService) AddDevice(ctx context.Context, in *AddDeviceRequest, opts ...client.CallOption) (*Empty, error) {
-	req := c.c.NewRequest(c.name, "User.AddDevice", in)
-	out := new(Empty)
+func (c *userService) RegisterDevice(ctx context.Context, in *Empty, opts ...client.CallOption) (*RegisterDeviceResponse, error) {
+	req := c.c.NewRequest(c.name, "User.RegisterDevice", in)
+	out := new(RegisterDeviceResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -98,21 +99,33 @@ func (c *userService) GetAccessKey(ctx context.Context, in *Empty, opts ...clien
 	return out, nil
 }
 
+func (c *userService) Logout(ctx context.Context, in *Empty, opts ...client.CallOption) (*LogoutResponse, error) {
+	req := c.c.NewRequest(c.name, "User.Logout", in)
+	out := new(LogoutResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for User service
 
 type UserHandler interface {
 	Register(context.Context, *RegisterRequest, *Empty) error
 	GetVerifier(context.Context, *VerifierRequest, *VerifierResponse) error
-	AddDevice(context.Context, *AddDeviceRequest, *Empty) error
+	RegisterDevice(context.Context, *Empty, *RegisterDeviceResponse) error
 	GetAccessKey(context.Context, *Empty, *AccessKeyResponse) error
+	Logout(context.Context, *Empty, *LogoutResponse) error
 }
 
 func RegisterUserHandler(s server.Server, hdlr UserHandler, opts ...server.HandlerOption) error {
 	type user interface {
 		Register(ctx context.Context, in *RegisterRequest, out *Empty) error
 		GetVerifier(ctx context.Context, in *VerifierRequest, out *VerifierResponse) error
-		AddDevice(ctx context.Context, in *AddDeviceRequest, out *Empty) error
+		RegisterDevice(ctx context.Context, in *Empty, out *RegisterDeviceResponse) error
 		GetAccessKey(ctx context.Context, in *Empty, out *AccessKeyResponse) error
+		Logout(ctx context.Context, in *Empty, out *LogoutResponse) error
 	}
 	type User struct {
 		user
@@ -133,10 +146,14 @@ func (h *userHandler) GetVerifier(ctx context.Context, in *VerifierRequest, out 
 	return h.UserHandler.GetVerifier(ctx, in, out)
 }
 
-func (h *userHandler) AddDevice(ctx context.Context, in *AddDeviceRequest, out *Empty) error {
-	return h.UserHandler.AddDevice(ctx, in, out)
+func (h *userHandler) RegisterDevice(ctx context.Context, in *Empty, out *RegisterDeviceResponse) error {
+	return h.UserHandler.RegisterDevice(ctx, in, out)
 }
 
 func (h *userHandler) GetAccessKey(ctx context.Context, in *Empty, out *AccessKeyResponse) error {
 	return h.UserHandler.GetAccessKey(ctx, in, out)
+}
+
+func (h *userHandler) Logout(ctx context.Context, in *Empty, out *LogoutResponse) error {
+	return h.UserHandler.Logout(ctx, in, out)
 }

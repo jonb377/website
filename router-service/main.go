@@ -9,7 +9,6 @@ import (
     "github.com/micro/go-micro/registry"
     "github.com/micro/go-micro/registry/consul"
     "github.com/gorilla/mux"
-    "net/http"
 )
 
 const (
@@ -31,10 +30,6 @@ func main() {
     r := mux.NewRouter()
 
     // Register service handlers
-    service.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte("<html><body><h1>Hello World!<h1></body></html>"))
-    })
-
     api := r.PathPrefix("/api").Subrouter()
     auth.Route(api.PathPrefix("/auth").Subrouter())
     user.Route(api.PathPrefix("/user").Subrouter())

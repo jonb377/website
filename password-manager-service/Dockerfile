@@ -1,4 +1,4 @@
-FROM website:latest as builder
+FROM jonb377/website:builder as builder
 
 WORKDIR /go/src/github.com/jonb377/website
 

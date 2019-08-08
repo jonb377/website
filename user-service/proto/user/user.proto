@@ -3,35 +3,56 @@ syntax = "proto3";
 package go.micro.api.user;
 
 message RegisterRequest {
-    string Username = 1;
-    string Firstname = 2;
-    string Lastname = 3;
-    string Email = 4;
-    string Device = 5;
-    bytes Salt = 6;
-    bytes Verifier = 7;
+    string Username     = 1;
+    string Firstname    = 2;
+    string Lastname     = 3;
+    string Email        = 4;
+    string Device       = 5;
+    bytes SRPSalt       = 6;
+    bytes SRPVerifier   = 7;
+    bytes MUKSalt       = 8;
+    bytes PublicKey     = 9;
+    bytes encPrivateKey = 10;
+    bytes encVaultKey   = 11;
 }
 
 message Empty {}
 
 message VerifierRequest {
-    string Username = 1;
-    string Device = 2;
+    string Username  = 1;
+    string Device    = 2;
     string AccessKey = 3;
 }
 
 message VerifierResponse {
     bytes Verifier = 1;
-    bytes Salt = 2;
+    bytes Salt     = 2;
 }
 
 message AccessKeyResponse {
     string AccessKey = 1;
 }
 
+message LogoutResponse {
+    bool Approved = 1;
+}
+
+message RegisterDeviceResponse {
+    bytes SRPSalt       = 1;
+    bytes MUKSalt       = 2;
+    bytes PublicKey     = 3;
+    string Username     = 4;
+    string Firstname    = 5;
+    string Lastname     = 6;
+    string Email        = 7;
+    bytes encPrivateKey = 8;
+    bytes encVaultKey   = 9;
+}
+
 service User {
     rpc Register(RegisterRequest) returns (Empty) {}
     rpc GetVerifier(VerifierRequest) returns (VerifierResponse) {}
-    rpc AddDevice(Empty) returns (Empty) {}
+    rpc RegisterDevice(Empty) returns (RegisterDeviceResponse) {}
     rpc GetAccessKey(Empty) returns (AccessKeyResponse) {}
+    rpc Logout(Empty) returns (LogoutResponse) {}
 }

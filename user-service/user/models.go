@@ -2,11 +2,19 @@ package user
 
 type User struct {
     Username    string `gorm:"primary_key"`
-    FirstName   string
-    LastName    string
+    Firstname   string
+    Lastname    string
     Email       string
-    Salt        []byte
-    Verifier    []byte
+}
+
+type UserKey struct {
+    Username      string `sql:"type: varchar REFERENCES users(username)"`
+    SRPSalt       []byte
+    SRPVerifier   []byte
+    MUKSalt       []byte
+    PublicKey     []byte
+    EncPrivateKey []byte
+    EncVaultKey   []byte
 }
 
 type Device struct {

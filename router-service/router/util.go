@@ -3,12 +3,14 @@ package router
 import (
     authService "github.com/jonb377/website/auth-service/proto/auth"
     "github.com/micro/go-micro/util/ctx"
+    "github.com/micro/go-micro/metadata"
     "github.com/micro/go-micro/client"
     "encoding/json"
     "reflect"
     "io/ioutil"
     "net/http"
     "context"
+    "errors"
     "bytes"
     "time"
     "log"
@@ -179,7 +181,6 @@ func RPCCall(f interface{}, req interface{}) func(http.ResponseWriter, *http.Req
         json.Unmarshal(body, req)
         log.Println("Body: ", req)
 
-        // Disgusting reflection
         cx := ctx.FromRequest(r)
         vf := reflect.ValueOf(f)
         vres := vf.Call([]reflect.Value{reflect.ValueOf(cx), reflect.ValueOf(req)})
@@ -201,3 +202,17 @@ func RPCCall(f interface{}, req interface{}) func(http.ResponseWriter, *http.Req
     }
 }
 
+
+func RequireAuth(ctx context.Context) (string, string, string, error) {
+    md, ok := metadata.FromContext(ctx)
+    if !ok {
+        md = metadata.Metadata{}
+    }
+    session_id := md["Session-Id"]
+    username := md["Username"]
+    device := md["Device"]
+    if session_id == "" || username == "" {
+        return "", "", "", errors.New("unauthorized")
+    }
+    return username, device, session_id, nil
+}

@@ -8,8 +8,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    ports:
-      - 5432:5432
 
   consul:
     image: consul:latest
@@ -20,8 +18,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    ports:
-      - "8500:8500"
 
   rabbit:
     image: rabbitmq:management
@@ -31,9 +27,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    ports:
-      - "5672:5672"
-      - "15672:15672"
 
   api:
     build:
@@ -58,8 +51,6 @@ services:
   auth-service:
     build:
       context: ./auth-service
-    ports:
-      - 9546:8080
     environment:
       MICRO_REGISTRY: "consul"
       MICRO_REGISTRY_ADDRESS: "consul"
@@ -79,8 +70,6 @@ services:
   password-manager-service:
     build:
       context: ./password-manager-service
-    ports:
-      - 9547:8080
     environment:
       MICRO_REGISTRY: "consul"
       MICRO_REGISTRY_ADDRESS: "consul"
@@ -100,8 +89,6 @@ services:
   user-service:
     build:
       context: ./user-service
-    ports:
-      - 9548:8080
     environment:
       MICRO_REGISTRY: "consul"
       MICRO_REGISTRY_ADDRESS: "consul"

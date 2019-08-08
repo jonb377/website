@@ -30,8 +30,6 @@ func RunUserService() {
     db.AutoMigrate(&Device{})
     db.AutoMigrate(&AccessKey{})
 
-    repo := &UserRepository{db}
-
     srv := micro.NewService(
         micro.Name(serviceName),
         micro.Version("latest"),
@@ -45,7 +43,7 @@ func RunUserService() {
 
     srv.Init()
 
-    if err := pb.RegisterUserHandler(srv.Server(), &service{repo}); err != nil {
+    if err := pb.RegisterUserHandler(srv.Server(), &service{db}); err != nil {
         fmt.Println(err)
     }
 
