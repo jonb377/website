@@ -28,7 +28,8 @@ services:
       timeout: 10s
       retries: 5
 
-  api:
+  router:
+    image: jonb377/website:router
     build:
       context: ./router-service
     ports:
@@ -49,6 +50,7 @@ services:
       - MICRO_API_NAMESPACE=go.micro.api
 
   auth-service:
+    image: jonb377/website:auth
     build:
       context: ./auth-service
     environment:
@@ -68,6 +70,7 @@ services:
       - rabbit
   
   password-manager-service:
+    image: jonb377/website:password-manager
     build:
       context: ./password-manager-service
     environment:
@@ -87,6 +90,7 @@ services:
       - rabbit
 
   user-service:
+    image: jonb377/website:user
     build:
       context: ./user-service
     environment:

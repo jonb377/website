@@ -9,6 +9,7 @@ import (
     "github.com/jinzhu/gorm"
     "errors"
     "time"
+    "log"
 )
 
 type service struct {
@@ -132,7 +133,10 @@ func (srv *service) Logout(ctx context.Context, req *pb.Empty, resp *pb.LogoutRe
         return err
     }
     var count int
-    srv.db.Table("devices").Where("username = ? and guid = ?", username, device).Count(&count)
+    log.Println("username: ", username, ", device: ", device)
+    if err := srv.db.Table("devices").Where("username = ?", username).Count(&count).Error; err != nil {
+        return err
+    }
     if count < 2 {
         resp.Approved = false
         return nil

@@ -12,8 +12,8 @@ message RegisterRequest {
     bytes SRPVerifier   = 7;
     bytes MUKSalt       = 8;
     bytes PublicKey     = 9;
-    bytes encPrivateKey = 10;
-    bytes encVaultKey   = 11;
+    bytes EncPrivateKey = 10;
+    bytes EncVaultKey   = 11;
 }
 
 message Empty {}
@@ -45,8 +45,8 @@ message RegisterDeviceResponse {
     string Firstname    = 5;
     string Lastname     = 6;
     string Email        = 7;
-    bytes encPrivateKey = 8;
-    bytes encVaultKey   = 9;
+    bytes EncPrivateKey = 8;
+    bytes EncVaultKey   = 9;
 }
 
 service User {

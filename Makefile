@@ -11,7 +11,7 @@ run:
 
 push:
 	docker login
-	docker push jonb377/website:builder
+	#docker push jonb377/website:builder
 	docker push jonb377/website:auth
 	docker push jonb377/website:user
 	docker push jonb377/website:password-manager

@@ -20,7 +20,7 @@ func Route(r *mux.Router) {
         "/devices/add",
         router.RPCCall(
             user.RegisterDevice,
-            &proto.RegisterDeviceResponse{},
+            &proto.Empty{},
         ),
     ).Methods("PUT")
     r.HandleFunc(
@@ -34,9 +34,9 @@ func Route(r *mux.Router) {
         "/logout",
         router.RPCCall(
             user.Logout,
-            &proto.LogoutResponse{},
+            &proto.Empty{},
         ),
-    ).Methods()
+    ).Methods("POST")
     r.Use(router.AuthWrapper)
     r.Use(router.LogWrapper)
 }

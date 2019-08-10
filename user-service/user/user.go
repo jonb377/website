@@ -29,6 +29,7 @@ func RunUserService() {
     db.AutoMigrate(&User{})
     db.AutoMigrate(&Device{})
     db.AutoMigrate(&AccessKey{})
+    db.AutoMigrate(&UserKey{})
 
     srv := micro.NewService(
         micro.Name(serviceName),
