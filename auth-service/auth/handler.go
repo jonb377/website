@@ -8,6 +8,7 @@ import (
     "github.com/google/uuid"
     "github.com/jinzhu/gorm"
     "github.com/micro/go-micro/metadata"
+    "time"
     "fmt"
     "log"
 )
@@ -127,7 +128,7 @@ func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRe
     }
     log.Printf("Found claims from token: %v\n", claims)
     var session Session
-    if err = s.db.Table("sessions").Where("session_id = ?", claims.SessionId).First(&session).Error; err != nil {
+    if err = s.db.Table("sessions").Where("session_id = ? and last_used > now() - '1 hour'::interval", claims.SessionId).First(&session).Error; err != nil {
         return err
     }
     log.Println("Found session: ", session.SessionID)
@@ -138,6 +139,9 @@ func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRe
     } else if session.Username != claims.Username {
         return errors.New("user is not authorized for session")
     }
+
+    session.LastUsed = time.Now()
+    s.db.Save(&session)
 
     resp.SessionKey = session.Key
     resp.SessionID = session.SessionID

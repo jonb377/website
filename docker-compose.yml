@@ -9,6 +9,9 @@ services:
       timeout: 10s
       retries: 5
 
+  cron:
+    image: jonb377/website:cron
+
   consul:
     image: consul:latest
     command: consul agent -dev -log-level=warn -ui -client=0.0.0.0
