@@ -1,9 +1,5 @@
 package auth
 
-import (
-    "time"
-)
-
 type Session struct {
     SessionID   string      `gorm:"PRIMARY_KEY"`
     Username    string
@@ -11,5 +7,5 @@ type Session struct {
     Key         []byte
     SRPb        []byte
     SRPA        []byte
-    LastUsed    time.Time   `sql:"type: timestamp without time zone default now()"`
+    LastUsed    int64
 }

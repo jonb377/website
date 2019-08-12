@@ -50,6 +50,7 @@ func (s *AuthService) CreateConnection(ctx context.Context, req *pb.CreateConnec
         Key: nil,
         SRPb: srp.b.Bytes(),
         SRPA: req.A,
+        LastUsed: time.Now().Unix(),
     }
     if err := s.db.Table("sessions").Create(&session).Error; err != nil {
         return err
@@ -85,7 +86,7 @@ func (s *AuthService) ConnectionChallenge(ctx context.Context, req *pb.Connectio
         return err
     }
     var session Session
-    if err := s.db.Table("sessions").Where("session_id = ?", session_id).First(&session).Error; err != nil {
+    if err := s.db.Table("sessions").Where("session_id = ? and last_used > extract(epoch from now() - '1 hour'::interval)", session_id).First(&session).Error; err != nil {
         return err
     }
     srp := NewSRPServerWithB(username, verifierResponse.Salt, verifierResponse.Verifier, session.SRPA, session.SRPb)
@@ -128,7 +129,7 @@ func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRe
     }
     log.Printf("Found claims from token: %v\n", claims)
     var session Session
-    if err = s.db.Table("sessions").Where("session_id = ? and last_used > now() - '1 hour'::interval", claims.SessionId).First(&session).Error; err != nil {
+    if err = s.db.Table("sessions").Where("session_id = ? and last_used > extract(epoch from now() - '1 hour'::interval)", claims.SessionId).First(&session).Error; err != nil {
         return err
     }
     log.Println("Found session: ", session.SessionID)
@@ -140,7 +141,7 @@ func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRe
         return errors.New("user is not authorized for session")
     }
 
-    session.LastUsed = time.Now()
+    session.LastUsed = time.Now().Unix()
     s.db.Save(&session)
 
     resp.SessionKey = session.Key

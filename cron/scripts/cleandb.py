@@ -7,7 +7,7 @@ async def main():
     deleted_sessions = await conn.fetchval('''
         with deleted as (
             delete from sessions
-            where last_used < now() - '1 hour'::interval
+            where last_used < extract(epoch from now() - '1 hour'::interval)
             returning *
         )
         select count(*) from deleted
