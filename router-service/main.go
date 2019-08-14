@@ -4,6 +4,7 @@ import (
     auth "github.com/jonb377/website/auth-service/auth"
     user "github.com/jonb377/website/user-service/user"
     passman "github.com/jonb377/website/password-manager-service/passwordmanager"
+    websrv "github.com/jonb377/website/web-service/web"
 	"github.com/micro/go-micro/util/log"
 	"github.com/micro/go-micro/web"
     "github.com/micro/go-micro/registry"
@@ -34,6 +35,9 @@ func main() {
     auth.Route(api.PathPrefix("/auth").Subrouter())
     user.Route(api.PathPrefix("/user").Subrouter())
     passman.Route(api.PathPrefix("/passwordmanager").Subrouter())
+
+    // Register web handler
+    websrv.Route(r.PathPrefix("/").Subrouter())
 
     service.Handle("/", r)
 

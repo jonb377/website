@@ -52,6 +52,14 @@ services:
       - MICRO_REGISTRY_ADDRESS=consul
       - MICRO_API_NAMESPACE=go.micro.api
 
+  web-service:
+    image: jonb377/website:web
+    build:
+      context: ./web-service
+    depends_on:
+      - consul
+      - rabbit
+
   auth-service:
     image: jonb377/website:auth
     build:

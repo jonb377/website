@@ -170,7 +170,6 @@ func AuthWrapper(next http.Handler) http.Handler {
 func RPCCall(f interface{}, req interface{}) func(http.ResponseWriter, *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         log.Println("In RPCCall")
-        log.Printf("Function type: %T\n", f)
 
         body, err := ioutil.ReadAll(r.Body)
         if err != nil {
@@ -201,7 +200,6 @@ func RPCCall(f interface{}, req interface{}) func(http.ResponseWriter, *http.Req
         w.Write(data)
     }
 }
-
 
 func RequireAuth(ctx context.Context) (string, string, string, error) {
     md, ok := metadata.FromContext(ctx)

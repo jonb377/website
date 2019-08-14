@@ -4,6 +4,7 @@ build:
 	cd user-service && make build
 	cd password-manager-service && make build
 	cd router-service && make build
+	cd web-service && make build
 	cd cron && make build
 
 run:
@@ -12,7 +13,6 @@ run:
 
 push:
 	docker login
-	#docker push jonb377/website:builder
 	docker push jonb377/website:auth
 	docker push jonb377/website:user
 	docker push jonb377/website:password-manager
