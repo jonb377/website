@@ -49,10 +49,15 @@ message RegisterDeviceResponse {
     bytes EncVaultKey   = 9;
 }
 
+message AdminsResponse {
+    repeated string Admins = 1;
+}
+
 service User {
     rpc Register(RegisterRequest) returns (Empty) {}
     rpc GetVerifier(VerifierRequest) returns (VerifierResponse) {}
     rpc RegisterDevice(Empty) returns (RegisterDeviceResponse) {}
     rpc GetAccessKey(Empty) returns (AccessKeyResponse) {}
     rpc Logout(Empty) returns (LogoutResponse) {}
+    rpc GetAdmins(Empty) returns (AdminsResponse) {}
 }

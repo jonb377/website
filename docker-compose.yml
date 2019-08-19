@@ -60,6 +60,26 @@ services:
       - consul
       - rabbit
 
+  notifications-service:
+    image: jonb377/website:notifications
+    build:
+      context: ./notifications-service
+    environment:
+      MICRO_REGISTRY: "consul"
+      MICRO_REGISTRY_ADDRESS: "consul"
+      MICRO_BROKER: "rabbitmq"
+      MICRO_BROKER_ADDRESS: "amqp://guest:guest@rabbit:5672"
+      DB_NAME: "postgres"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+    restart: always
+    depends_on:
+      - database
+      - consul
+      - rabbit
+
   auth-service:
     image: jonb377/website:auth
     build:

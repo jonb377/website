@@ -25,18 +25,17 @@ func Route(r *mux.Router) {
     ).Methods("PUT")
     r.HandleFunc(
         "/access-key",
-        router.RPCCall(
+        router.AuthenticatedRPCCall(
             user.GetAccessKey,
             &proto.Empty{},
         ),
     ).Methods("POST")
     r.HandleFunc(
         "/logout",
-        router.RPCCall(
+        router.AuthenticatedRPCCall(
             user.Logout,
             &proto.Empty{},
         ),
     ).Methods("POST")
     r.Use(router.AuthWrapper)
-    r.Use(router.LogWrapper)
 }

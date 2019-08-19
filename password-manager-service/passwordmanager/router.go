@@ -11,18 +11,17 @@ func Route(r *mux.Router) {
     passman := proto.NewPasswordManagerService("go.micro.api.passwordmanager", client.DefaultClient)
     r.HandleFunc(
         "/update",
-        router.RPCCall(
+        router.AuthenticatedRPCCall(
             passman.UpdatePassword,
             &proto.UpdatePasswordRequest{},
         ),
     ).Methods("POST")
     r.HandleFunc(
         "/list",
-        router.RPCCall(
+        router.AuthenticatedRPCCall(
             passman.ListPasswords,
             &proto.ListPasswordRequest{},
         ),
     ).Methods("POST")
     r.Use(router.AuthWrapper)
-    r.Use(router.LogWrapper)
 }

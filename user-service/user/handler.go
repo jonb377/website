@@ -2,14 +2,17 @@ package user
 
 import (
     pb "github.com/jonb377/website/user-service/proto/user"
+    "log"
+    authProto "github.com/jonb377/website/auth-service/proto/auth"
+    notiProto "github.com/jonb377/website/notifications-service/proto/notifications"
     util "github.com/jonb377/website/router-service/router"
+    "github.com/micro/go-micro/client"
     "context"
     "github.com/google/uuid"
     "github.com/micro/go-micro/metadata"
     "github.com/jinzhu/gorm"
     "errors"
     "time"
-    "log"
 )
 
 type service struct {
@@ -114,12 +117,9 @@ func (srv *service) RegisterDevice(ctx context.Context, req *pb.Empty, resp *pb.
 }
 
 func (srv *service) GetAccessKey(ctx context.Context, req *pb.Empty, resp *pb.AccessKeyResponse) error {
-    username, _, _, err := util.RequireAuth(ctx)
-    if err != nil {
-        return err
-    }
+    session := util.GetSessionData(ctx)
     accessKey := AccessKey{
-        Username: username,
+        Username: session.Username,
         Key: uuid.New().String(),
         CreatedAt: time.Now().Unix(),
     }
@@ -128,13 +128,9 @@ func (srv *service) GetAccessKey(ctx context.Context, req *pb.Empty, resp *pb.Ac
 }
 
 func (srv *service) Logout(ctx context.Context, req *pb.Empty, resp *pb.LogoutResponse) error {
-    username, device, _, err := util.RequireAuth(ctx)
-    if err != nil {
-        return err
-    }
+    session := util.GetSessionData(ctx)
     var count int
-    log.Println("username: ", username, ", device: ", device)
-    if err := srv.db.Table("devices").Where("username = ?", username).Count(&count).Error; err != nil {
+    if err := srv.db.Table("devices").Where("username = ?", session.Username).Count(&count).Error; err != nil {
         return err
     }
     if count < 2 {
@@ -144,13 +140,30 @@ func (srv *service) Logout(ctx context.Context, req *pb.Empty, resp *pb.LogoutRe
 
     // Delete the device
     if err := srv.db.Delete(&Device{
-        Guid: device,
-        Username: username,
+        Guid: session.Device,
+        Username: session.Username,
     }).Error; err != nil {
         return err
     }
 
-    // TODO: Delete session
+    authClient := authProto.NewAuthService("go.micro.api.auth", client.DefaultClient)
+    notiClient := notiProto.NewNotificationsService("go.micro.api.notifications", client.DefaultClient)
+    go authClient.CloseConnection(ctx, &authProto.Empty{})
+    go notiClient.RemovePushToken(ctx, &notiProto.Empty{})
     resp.Approved = true
+    return nil
+}
+
+func (srv *service) GetAdmins(ctx context.Context, req *pb.Empty, resp *pb.AdminsResponse) error {
+    var admins []User
+    if err := srv.db.Table("users").Where("admin").Find(&admins).Error; err != nil {
+        return err
+    }
+    log.Printf("Found %d admins: %v\n", len(admins), admins)
+    names := make([]string, len(admins))
+    for i, admin := range admins {
+        names[i] = admin.Username
+    }
+    resp.Admins = names
     return nil
 }

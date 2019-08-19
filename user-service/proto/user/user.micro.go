@@ -39,6 +39,7 @@ type UserService interface {
 	RegisterDevice(ctx context.Context, in *Empty, opts ...client.CallOption) (*RegisterDeviceResponse, error)
 	GetAccessKey(ctx context.Context, in *Empty, opts ...client.CallOption) (*AccessKeyResponse, error)
 	Logout(ctx context.Context, in *Empty, opts ...client.CallOption) (*LogoutResponse, error)
+	GetAdmins(ctx context.Context, in *Empty, opts ...client.CallOption) (*AdminsResponse, error)
 }
 
 type userService struct {
@@ -109,6 +110,16 @@ func (c *userService) Logout(ctx context.Context, in *Empty, opts ...client.Call
 	return out, nil
 }
 
+func (c *userService) GetAdmins(ctx context.Context, in *Empty, opts ...client.CallOption) (*AdminsResponse, error) {
+	req := c.c.NewRequest(c.name, "User.GetAdmins", in)
+	out := new(AdminsResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for User service
 
 type UserHandler interface {
@@ -117,6 +128,7 @@ type UserHandler interface {
 	RegisterDevice(context.Context, *Empty, *RegisterDeviceResponse) error
 	GetAccessKey(context.Context, *Empty, *AccessKeyResponse) error
 	Logout(context.Context, *Empty, *LogoutResponse) error
+	GetAdmins(context.Context, *Empty, *AdminsResponse) error
 }
 
 func RegisterUserHandler(s server.Server, hdlr UserHandler, opts ...server.HandlerOption) error {
@@ -126,6 +138,7 @@ func RegisterUserHandler(s server.Server, hdlr UserHandler, opts ...server.Handl
 		RegisterDevice(ctx context.Context, in *Empty, out *RegisterDeviceResponse) error
 		GetAccessKey(ctx context.Context, in *Empty, out *AccessKeyResponse) error
 		Logout(ctx context.Context, in *Empty, out *LogoutResponse) error
+		GetAdmins(ctx context.Context, in *Empty, out *AdminsResponse) error
 	}
 	type User struct {
 		user
@@ -156,4 +169,8 @@ func (h *userHandler) GetAccessKey(ctx context.Context, in *Empty, out *AccessKe
 
 func (h *userHandler) Logout(ctx context.Context, in *Empty, out *LogoutResponse) error {
 	return h.UserHandler.Logout(ctx, in, out)
+}
+
+func (h *userHandler) GetAdmins(ctx context.Context, in *Empty, out *AdminsResponse) error {
+	return h.UserHandler.GetAdmins(ctx, in, out)
 }

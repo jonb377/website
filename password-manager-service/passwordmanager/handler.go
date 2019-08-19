@@ -2,11 +2,9 @@ package passwordmanager
 
 import (
     pb "github.com/jonb377/website/password-manager-service/proto/password-manager"
+    util "github.com/jonb377/website/router-service/router"
     "context"
     "github.com/jinzhu/gorm"
-    "github.com/micro/go-micro/metadata"
-    "errors"
-    "log"
 )
 
 type PasswordManagerService struct {
@@ -14,16 +12,9 @@ type PasswordManagerService struct {
 }
 
 func (s *PasswordManagerService) UpdatePassword(ctx context.Context,  req *pb.UpdatePasswordRequest, resp *pb.Empty) error {
-    md, ok := metadata.FromContext(ctx)
-    if !ok {
-        md = metadata.Metadata{}
-    }
-    user := md["Username"]
-    if user == "" {
-        return errors.New("unauthorized")
-    }
+    session := util.GetSessionData(ctx)
     entry := PasswordEntry{
-        Userkey: user,
+        Userkey: session.Username,
         Domain: req.Domain,
         Username: req.Username,
         Password: req.Password,
@@ -40,20 +31,11 @@ func (s *PasswordManagerService) UpdatePassword(ctx context.Context,  req *pb.Up
 }
 
 func (s *PasswordManagerService) ListPasswords(ctx context.Context, req *pb.ListPasswordRequest, resp *pb.ListPasswordResponse) error {
-    md, ok := metadata.FromContext(ctx)
-    if !ok {
-        md = metadata.Metadata{}
-    }
-    user := md["Username"]
-    if user == "" {
-        return errors.New("unauthorized")
-    }
-    log.Printf("Finding passwords for user %s after date %d\n", user, req.Date)
+    session := util.GetSessionData(ctx)
     var dbpasswords []PasswordEntry
-    if err := s.db.Table("password_entries").Where("userkey = ? and date > ?", user, req.Date).Find(&dbpasswords).Error; err != nil {
+    if err := s.db.Table("password_entries").Where("userkey = ? and date > ?", session.Username, req.Date).Find(&dbpasswords).Error; err != nil {
         return err
     }
-    log.Printf("Found %d passwords: %v\n", len(dbpasswords), dbpasswords)
     resp.Passwords = make([]*pb.PasswordEntry, len(dbpasswords))
     for i, p := range dbpasswords {
         resp.Passwords[i] = &pb.PasswordEntry{

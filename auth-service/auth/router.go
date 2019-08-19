@@ -31,5 +31,4 @@ func Route(r *mux.Router) {
         ),
     ).Methods("POST")
     r.Use(router.AuthWrapper)
-    r.Use(router.LogWrapper)
 }

@@ -1,3 +1,9 @@
 [submodule "web-service"]
 	path = web-service
 	url = git@github.com:jonb377/web-service.git
+[submodule "router-service"]
+	path = router-service
+	url = git@github.com:jonb377/website-router.git
+[submodule "notifications-service"]
+	path = notifications-service
+	url = git@github.com:jonb377/website-notifications.git
