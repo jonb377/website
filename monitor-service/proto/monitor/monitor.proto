@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package go.micro.api.monitor;
+
+message Activity {
+    string ip = 1;
+    string route = 2;
+    string host = 3;
+}
+
+message Empty {}
+
+service Monitor {
+    rpc NotifyActivity(Activity) returns (Empty) {}
+}

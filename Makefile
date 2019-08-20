@@ -7,6 +7,7 @@ build:
 	cd web-service && make build
 	cd cron && make build
 	cd notifications-service && make build
+	cd monitor-service && make build
 
 run:
 	docker-compose build
@@ -21,3 +22,4 @@ push:
 	docker push jonb377/website:cron
 	docker push jonb377/website:web
 	docker push jonb377/website:notifications
+	docker push jonb377/website:monitor

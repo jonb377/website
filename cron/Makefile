@@ -3,3 +3,6 @@ build:
 
 run:
 	docker run -it jonb377/website:cron
+
+push:
+	docker push jonb377/website:cron
