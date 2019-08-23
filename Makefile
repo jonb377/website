@@ -8,13 +8,13 @@ build:
 	cd cron && make build
 	cd notifications-service && make build
 	cd monitor-service && make build
+	git checkout dev && git add -A && git commit -m "Successful build"
 
 run:
 	docker-compose build
 	docker-compose up --force-recreate
 
 push:
-#	docker login
 	docker push jonb377/website:auth
 	docker push jonb377/website:user
 	docker push jonb377/website:password-manager
@@ -23,3 +23,4 @@ push:
 	docker push jonb377/website:web
 	docker push jonb377/website:notifications
 	docker push jonb377/website:monitor
+	git push
