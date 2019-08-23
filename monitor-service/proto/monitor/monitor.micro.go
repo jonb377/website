@@ -35,6 +35,10 @@ var _ server.Option
 
 type MonitorService interface {
 	NotifyActivity(ctx context.Context, in *Activity, opts ...client.CallOption) (*Empty, error)
+	CreateRequest(ctx context.Context, in *CreateRequestMessage, opts ...client.CallOption) (*RequestId, error)
+	FinishRequest(ctx context.Context, in *FinishRequestMessage, opts ...client.CallOption) (*Empty, error)
+	StartTrace(ctx context.Context, in *Trace, opts ...client.CallOption) (*TraceId, error)
+	FinishTrace(ctx context.Context, in *TraceId, opts ...client.CallOption) (*Empty, error)
 }
 
 type monitorService struct {
@@ -65,15 +69,63 @@ func (c *monitorService) NotifyActivity(ctx context.Context, in *Activity, opts 
 	return out, nil
 }
 
+func (c *monitorService) CreateRequest(ctx context.Context, in *CreateRequestMessage, opts ...client.CallOption) (*RequestId, error) {
+	req := c.c.NewRequest(c.name, "Monitor.CreateRequest", in)
+	out := new(RequestId)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitorService) FinishRequest(ctx context.Context, in *FinishRequestMessage, opts ...client.CallOption) (*Empty, error) {
+	req := c.c.NewRequest(c.name, "Monitor.FinishRequest", in)
+	out := new(Empty)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitorService) StartTrace(ctx context.Context, in *Trace, opts ...client.CallOption) (*TraceId, error) {
+	req := c.c.NewRequest(c.name, "Monitor.StartTrace", in)
+	out := new(TraceId)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitorService) FinishTrace(ctx context.Context, in *TraceId, opts ...client.CallOption) (*Empty, error) {
+	req := c.c.NewRequest(c.name, "Monitor.FinishTrace", in)
+	out := new(Empty)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Monitor service
 
 type MonitorHandler interface {
 	NotifyActivity(context.Context, *Activity, *Empty) error
+	CreateRequest(context.Context, *CreateRequestMessage, *RequestId) error
+	FinishRequest(context.Context, *FinishRequestMessage, *Empty) error
+	StartTrace(context.Context, *Trace, *TraceId) error
+	FinishTrace(context.Context, *TraceId, *Empty) error
 }
 
 func RegisterMonitorHandler(s server.Server, hdlr MonitorHandler, opts ...server.HandlerOption) error {
 	type monitor interface {
 		NotifyActivity(ctx context.Context, in *Activity, out *Empty) error
+		CreateRequest(ctx context.Context, in *CreateRequestMessage, out *RequestId) error
+		FinishRequest(ctx context.Context, in *FinishRequestMessage, out *Empty) error
+		StartTrace(ctx context.Context, in *Trace, out *TraceId) error
+		FinishTrace(ctx context.Context, in *TraceId, out *Empty) error
 	}
 	type Monitor struct {
 		monitor
@@ -88,4 +140,20 @@ type monitorHandler struct {
 
 func (h *monitorHandler) NotifyActivity(ctx context.Context, in *Activity, out *Empty) error {
 	return h.MonitorHandler.NotifyActivity(ctx, in, out)
+}
+
+func (h *monitorHandler) CreateRequest(ctx context.Context, in *CreateRequestMessage, out *RequestId) error {
+	return h.MonitorHandler.CreateRequest(ctx, in, out)
+}
+
+func (h *monitorHandler) FinishRequest(ctx context.Context, in *FinishRequestMessage, out *Empty) error {
+	return h.MonitorHandler.FinishRequest(ctx, in, out)
+}
+
+func (h *monitorHandler) StartTrace(ctx context.Context, in *Trace, out *TraceId) error {
+	return h.MonitorHandler.StartTrace(ctx, in, out)
+}
+
+func (h *monitorHandler) FinishTrace(ctx context.Context, in *TraceId, out *Empty) error {
+	return h.MonitorHandler.FinishTrace(ctx, in, out)
 }

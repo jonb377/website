@@ -121,7 +121,7 @@ func (srv *service) GetAccessKey(ctx context.Context, req *pb.Empty, resp *pb.Ac
     accessKey := AccessKey{
         Username: session.Username,
         Key: uuid.New().String(),
-        CreatedAt: time.Now().Unix(),
+        CreatedAt: time.Now().UnixNano() / int64(time.Millisecond),
     }
     resp.AccessKey = accessKey.Key
     return srv.db.Create(&accessKey).Error

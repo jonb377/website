@@ -8,8 +8,38 @@ message Activity {
     string host = 3;
 }
 
+message Trace {
+    string ParentId = 1;
+    string RequestId = 2;
+    string Service = 3;
+    string Method = 4;
+}
+
+message TraceId {
+    string TraceId = 1;
+}
+
+message CreateRequestMessage {
+    string Route = 1;
+    string Ip = 2;
+}
+
+message RequestId {
+    string RequestId = 1;
+}
+
+message FinishRequestMessage {
+    string RequestId = 1;
+    int32 StatusCode = 2;
+    int64 ResponseSize = 3;
+}
+
 message Empty {}
 
 service Monitor {
     rpc NotifyActivity(Activity) returns (Empty) {}
+    rpc CreateRequest(CreateRequestMessage) returns (RequestId) {}
+    rpc FinishRequest(FinishRequestMessage) returns (Empty) {}
+    rpc StartTrace(Trace) returns (TraceId) {}
+    rpc FinishTrace(TraceId) returns (Empty) {}
 }

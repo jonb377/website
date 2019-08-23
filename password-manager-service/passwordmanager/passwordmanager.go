@@ -2,6 +2,7 @@ package passwordmanager
 
 import (
     pb "github.com/jonb377/website/password-manager-service/proto/password-manager"
+    moni "github.com/jonb377/website/monitor-service/monitor"
     "fmt"
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/server"
@@ -34,6 +35,7 @@ func RunPasswordManagerService() {
                 server.Address(":8080"),
             ),
         ),
+        micro.WrapHandler(moni.RPCTraceWrapper(serviceName)),
     )
 
     srv.Init()

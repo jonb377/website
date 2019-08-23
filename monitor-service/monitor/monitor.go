@@ -31,6 +31,8 @@ func RunMonitorService() {
     defer db.Close()
 
     db.AutoMigrate(&Request{})
+    db.AutoMigrate(&Trace{})
+    db.AutoMigrate(&Log{})
 
     srv := micro.NewService(
         micro.Name(serviceName),

@@ -14,7 +14,7 @@ run:
 	docker-compose up --force-recreate
 
 push:
-	docker login
+#	docker login
 	docker push jonb377/website:auth
 	docker push jonb377/website:user
 	docker push jonb377/website:password-manager

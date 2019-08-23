@@ -29,7 +29,7 @@ func (s *AuthService) CreateConnection(ctx context.Context, req *pb.CreateConnec
     if device == "" && accessKey == "" {
         return errors.New("device header or access key required")
     }
-    verifierResponse, err := s.userClient.GetVerifier(context.Background(), &userProto.VerifierRequest{
+    verifierResponse, err := s.userClient.GetVerifier(ctx, &userProto.VerifierRequest{
         Username: req.Username,
         Device: device,
         AccessKey: accessKey,
@@ -50,7 +50,7 @@ func (s *AuthService) CreateConnection(ctx context.Context, req *pb.CreateConnec
         Key: nil,
         SRPb: srp.b.Bytes(),
         SRPA: req.A,
-        LastUsed: time.Now().Unix(),
+        LastUsed: time.Now().UnixNano() / int64(time.Millisecond),
     }
     if err := s.db.Table("sessions").Create(&session).Error; err != nil {
         return err
@@ -76,7 +76,7 @@ func (s *AuthService) ConnectionChallenge(ctx context.Context, req *pb.Connectio
     if session_id == "" || (device == "" && accessKey == "") || username == "" {
         return errors.New(fmt.Sprintf("unauthorized: %s %s %s %s", session_id, device, accessKey, username))
     }
-    verifierResponse, err := s.userClient.GetVerifier(context.Background(), &userProto.VerifierRequest{
+    verifierResponse, err := s.userClient.GetVerifier(ctx, &userProto.VerifierRequest{
         Username: username,
         Device: device,
         AccessKey: accessKey,
@@ -141,7 +141,7 @@ func (s *AuthService) ValidateToken(ctx context.Context, req *pb.ValidateTokenRe
         return errors.New("user is not authorized for session")
     }
 
-    session.LastUsed = time.Now().Unix()
+    session.LastUsed = time.Now().UnixNano() / int64(time.Millisecond)
     s.db.Save(&session)
 
     resp.SessionKey = session.Key

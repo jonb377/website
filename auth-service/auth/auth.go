@@ -3,6 +3,7 @@ package auth
 import (
     userProto "github.com/jonb377/website/user-service/proto/user"
     pb "github.com/jonb377/website/auth-service/proto/auth"
+    moni "github.com/jonb377/website/monitor-service/monitor"
     "fmt"
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/client"
@@ -37,6 +38,7 @@ func RunAuthService() {
                 server.Address(":8080"),
             ),
         ),
+        micro.WrapHandler(moni.RPCTraceWrapper(serviceName)),
     )
 
     srv.Init()

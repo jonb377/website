@@ -2,6 +2,7 @@ package user
 
 import (
     pb "github.com/jonb377/website/user-service/proto/user"
+    moni "github.com/jonb377/website/monitor-service/monitor"
     "fmt"
     "github.com/micro/go-micro"
     "github.com/micro/go-micro/server"
@@ -40,6 +41,7 @@ func RunUserService() {
                 server.Address(":8080"),
             ),
         ),
+        micro.WrapHandler(moni.RPCTraceWrapper(serviceName)),
     )
 
     srv.Init()
