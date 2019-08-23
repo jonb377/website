@@ -8,7 +8,7 @@ build:
 	cd cron && make build
 	cd notifications-service && make build
 	cd monitor-service && make build
-	git checkout dev && git add -A && git commit -m "Successful build"
+	git checkout dev && git add -A && git commit
 
 run:
 	docker-compose build
