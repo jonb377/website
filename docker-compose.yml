@@ -36,7 +36,7 @@ services:
     build:
       context: ./router-service
     ports:
-      - "80:8080"
+      - "8080:8080"
     restart: always
     depends_on:
       - consul
@@ -46,7 +46,7 @@ services:
     image: microhq/micro
     command: web --address=0.0.0.0:8080
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       - MICRO_REGISTRY=consul
       - MICRO_REGISTRY_ADDRESS=consul
@@ -56,8 +56,6 @@ services:
     image: jonb377/website:web
     build:
       context: ./web-service
-    ports:
-      - "80:4000"
     depends_on:
       - consul
       - rabbit
@@ -126,6 +124,46 @@ services:
     image: jonb377/website:user
     build:
       context: ./user-service
+    environment:
+      MICRO_REGISTRY: "consul"
+      MICRO_REGISTRY_ADDRESS: "consul"
+      MICRO_BROKER: "rabbitmq"
+      MICRO_BROKER_ADDRESS: "amqp://guest:guest@rabbit:5672"
+      DB_NAME: "postgres"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+    restart: always
+    depends_on:
+      - database
+      - consul
+      - rabbit
+
+  monitor-service:
+    image: jonb377/website:monitor
+    build:
+      context: ./monitor-service
+    environment:
+      MICRO_REGISTRY: "consul"
+      MICRO_REGISTRY_ADDRESS: "consul"
+      MICRO_BROKER: "rabbitmq"
+      MICRO_BROKER_ADDRESS: "amqp://guest:guest@rabbit:5672"
+      DB_NAME: "postgres"
+      DB_HOST: "database"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+    restart: always
+    depends_on:
+      - database
+      - consul
+      - rabbit
+
+  storage-service:
+    image: jonb377/website:storage
+    build:
+      context: ./storage-service
     environment:
       MICRO_REGISTRY: "consul"
       MICRO_REGISTRY_ADDRESS: "consul"
