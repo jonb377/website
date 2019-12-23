@@ -56,6 +56,8 @@ services:
     image: jonb377/website:web
     build:
       context: ./web-service
+    ports:
+      - "80:4000"
     depends_on:
       - consul
       - rabbit

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package go.micro.api.storage;
+
+message Blob {
+    string uri = 1;
+    int64 date = 2;
+    bytes data = 3;
+    int64 deletedAt = 4;
+}
+
+message SyncRequest {
+    int64 lastUpdate = 1;
+}
+
+message SyncResponse {
+    repeated Blob blobs = 1;
+}
+
+message Empty {}
+
+service Storage {
+    rpc Rename(Empty) returns (Empty) {}
+    rpc SaveBlob(Blob) returns (Empty) {}
+    rpc DeleteBlob(Empty) returns (Empty) {}
+    rpc Sync(SyncRequest) returns (SyncResponse) {}
+}
