@@ -8,6 +8,7 @@ build:
 	cd cron && make build
 	cd notifications-service && make build
 	cd monitor-service && make build
+	cd storage-service && make build
 	git add -A && git commit
 
 run:
@@ -23,4 +24,5 @@ push:
 	docker push jonb377/website:web
 	docker push jonb377/website:notifications
 	docker push jonb377/website:monitor
+	docker push jonb377/website:storage
 	git push

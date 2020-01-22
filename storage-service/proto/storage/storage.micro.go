@@ -34,9 +34,9 @@ var _ server.Option
 // Client API for Storage service
 
 type StorageService interface {
-	Rename(ctx context.Context, in *Empty, opts ...client.CallOption) (*Empty, error)
+	Rename(ctx context.Context, in *RenameRequest, opts ...client.CallOption) (*Empty, error)
 	SaveBlob(ctx context.Context, in *Blob, opts ...client.CallOption) (*Empty, error)
-	DeleteBlob(ctx context.Context, in *Empty, opts ...client.CallOption) (*Empty, error)
+	DeleteBlob(ctx context.Context, in *Blob, opts ...client.CallOption) (*Empty, error)
 	Sync(ctx context.Context, in *SyncRequest, opts ...client.CallOption) (*SyncResponse, error)
 }
 
@@ -58,7 +58,7 @@ func NewStorageService(name string, c client.Client) StorageService {
 	}
 }
 
-func (c *storageService) Rename(ctx context.Context, in *Empty, opts ...client.CallOption) (*Empty, error) {
+func (c *storageService) Rename(ctx context.Context, in *RenameRequest, opts ...client.CallOption) (*Empty, error) {
 	req := c.c.NewRequest(c.name, "Storage.Rename", in)
 	out := new(Empty)
 	err := c.c.Call(ctx, req, out, opts...)
@@ -78,7 +78,7 @@ func (c *storageService) SaveBlob(ctx context.Context, in *Blob, opts ...client.
 	return out, nil
 }
 
-func (c *storageService) DeleteBlob(ctx context.Context, in *Empty, opts ...client.CallOption) (*Empty, error) {
+func (c *storageService) DeleteBlob(ctx context.Context, in *Blob, opts ...client.CallOption) (*Empty, error) {
 	req := c.c.NewRequest(c.name, "Storage.DeleteBlob", in)
 	out := new(Empty)
 	err := c.c.Call(ctx, req, out, opts...)
@@ -101,17 +101,17 @@ func (c *storageService) Sync(ctx context.Context, in *SyncRequest, opts ...clie
 // Server API for Storage service
 
 type StorageHandler interface {
-	Rename(context.Context, *Empty, *Empty) error
+	Rename(context.Context, *RenameRequest, *Empty) error
 	SaveBlob(context.Context, *Blob, *Empty) error
-	DeleteBlob(context.Context, *Empty, *Empty) error
+	DeleteBlob(context.Context, *Blob, *Empty) error
 	Sync(context.Context, *SyncRequest, *SyncResponse) error
 }
 
 func RegisterStorageHandler(s server.Server, hdlr StorageHandler, opts ...server.HandlerOption) error {
 	type storage interface {
-		Rename(ctx context.Context, in *Empty, out *Empty) error
+		Rename(ctx context.Context, in *RenameRequest, out *Empty) error
 		SaveBlob(ctx context.Context, in *Blob, out *Empty) error
-		DeleteBlob(ctx context.Context, in *Empty, out *Empty) error
+		DeleteBlob(ctx context.Context, in *Blob, out *Empty) error
 		Sync(ctx context.Context, in *SyncRequest, out *SyncResponse) error
 	}
 	type Storage struct {
@@ -125,7 +125,7 @@ type storageHandler struct {
 	StorageHandler
 }
 
-func (h *storageHandler) Rename(ctx context.Context, in *Empty, out *Empty) error {
+func (h *storageHandler) Rename(ctx context.Context, in *RenameRequest, out *Empty) error {
 	return h.StorageHandler.Rename(ctx, in, out)
 }
 
@@ -133,7 +133,7 @@ func (h *storageHandler) SaveBlob(ctx context.Context, in *Blob, out *Empty) err
 	return h.StorageHandler.SaveBlob(ctx, in, out)
 }
 
-func (h *storageHandler) DeleteBlob(ctx context.Context, in *Empty, out *Empty) error {
+func (h *storageHandler) DeleteBlob(ctx context.Context, in *Blob, out *Empty) error {
 	return h.StorageHandler.DeleteBlob(ctx, in, out)
 }
 

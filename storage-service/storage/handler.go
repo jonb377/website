@@ -5,6 +5,7 @@ import (
     util "github.com/jonb377/website/router-service/router"
     "context"
     "github.com/jinzhu/gorm"
+    "time"
 )
 
 type StorageService struct {
@@ -15,37 +16,39 @@ func (s *StorageService) SaveBlob(ctx context.Context,  req *pb.Blob, resp *pb.E
     session := util.GetSessionData(ctx)
     blob := Blob{
         User: session.Username,
-        URI: session.MuxVars["uri"].(string),
+        URI: req.Uri,
         Data: req.Data,
         Modified: req.Date,
-        DeletedAt: req.DeletedAt,
+    }
+    if req.DeletedAt != 0 {
+        blob.DeletedAt = time.Unix(req.DeletedAt, 0)
     }
     if err := s.db.Table("blobs").Set(
         "gorm:insert_option",
-        "ON CONFLICT ON CONSTRAINT blobs_pkey DO UPDATE SET data = excluded.data, date = excluded.date, deleted = excluded.deleted",
+        "ON CONFLICT ON CONSTRAINT blobs_pkey DO UPDATE SET data = excluded.data, modified = excluded.modified, deleted_at = excluded.deleted_at",
         ).Create(&blob).Error; err != nil {
         return err
     }
     return nil
 }
 
-func (s *StorageService) Rename(ctx context.Context,  req *pb.Empty, resp *pb.Empty) error {
+func (s *StorageService) Rename(ctx context.Context,  req *pb.RenameRequest, resp *pb.Empty) error {
     session := util.GetSessionData(ctx)
     blob := Blob{
         User: session.Username,
-        URI: session.MuxVars["olduri"].(string),
+        URI: req.OldUri,
     }
-    if err := s.db.Model(&blob).Update("uri", session.MuxVars["newuri"].(string)).Error; err != nil {
+    if err := s.db.Model(&blob).Update("uri", req.NewUri).Error; err != nil {
         return err
     }
     return nil
 }
 
-func (s *StorageService) DeleteBlob(ctx context.Context,  req *pb.Empty, resp *pb.Empty) error {
+func (s *StorageService) DeleteBlob(ctx context.Context,  req *pb.Blob, resp *pb.Empty) error {
     session := util.GetSessionData(ctx)
     blob := Blob{
         User: session.Username,
-        URI: session.MuxVars["uri"].(string),
+        URI: req.Uri,
     }
     if err := s.db.Delete(&blob).Error; err != nil {
         return err
@@ -56,7 +59,7 @@ func (s *StorageService) DeleteBlob(ctx context.Context,  req *pb.Empty, resp *p
 func (s *StorageService) Sync(ctx context.Context,  req *pb.SyncRequest, resp *pb.SyncResponse) error {
     session := util.GetSessionData(ctx)
     var dbblobs []Blob
-    if err := s.db.Table("blobs").Where("user = ? and date > ?", session.Username, req.LastUpdate).Find(&dbblobs).Error; err != nil {
+    if err := s.db.Table("blobs").Where("user = ? and modified > ?", session.Username, req.LastUpdate).Find(&dbblobs).Error; err != nil {
         return err
     }
     resp.Blobs = make([]*pb.Blob, len(dbblobs))
@@ -65,7 +68,9 @@ func (s *StorageService) Sync(ctx context.Context,  req *pb.SyncRequest, resp *p
             Uri: p.URI,
             Date: p.Modified,
             Data: p.Data,
-            DeletedAt: p.DeletedAt,
+        }
+        if p.DeletedAt.IsZero() {
+            resp.Blobs[i].DeletedAt = p.DeletedAt.Unix()
         }
     }
     return nil

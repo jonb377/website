@@ -9,6 +9,11 @@ message Blob {
     int64 deletedAt = 4;
 }
 
+message RenameRequest {
+    string oldUri = 1;
+    string newUri = 2;
+}
+
 message SyncRequest {
     int64 lastUpdate = 1;
 }
@@ -20,8 +25,8 @@ message SyncResponse {
 message Empty {}
 
 service Storage {
-    rpc Rename(Empty) returns (Empty) {}
+    rpc Rename(RenameRequest) returns (Empty) {}
     rpc SaveBlob(Blob) returns (Empty) {}
-    rpc DeleteBlob(Empty) returns (Empty) {}
+    rpc DeleteBlob(Blob) returns (Empty) {}
     rpc Sync(SyncRequest) returns (SyncResponse) {}
 }
