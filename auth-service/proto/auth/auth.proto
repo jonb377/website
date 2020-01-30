@@ -2,6 +2,14 @@ syntax = "proto3";
 
 package go.micro.api.auth;
 
+// Permissions
+
+enum A2Enum {
+    SEND_PUSH_NOTIFICATION = 0;
+}
+
+// Login and tokens
+
 message CreateConnectionRequest {
     bytes A = 1;
     string Username = 2;

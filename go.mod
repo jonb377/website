@@ -8,7 +8,7 @@ replace (
 )
 
 require (
-	firebase.google.com/go v3.9.0+incompatible
+	firebase.google.com/go v3.11.0+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1

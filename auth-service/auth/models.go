@@ -9,3 +9,8 @@ type Session struct {
     SRPA        []byte
     LastUsed    int64
 }
+
+type Permission struct {
+    Username    string  `gorm:"PRIMARY_KEY"`
+    Permission  string  `gorm:"PRIMARY_KEY"`
+}
