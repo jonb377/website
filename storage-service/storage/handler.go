@@ -5,7 +5,6 @@ import (
     util "github.com/jonb377/website/router-service/router"
     "context"
     "github.com/jinzhu/gorm"
-    "time"
 )
 
 type StorageService struct {
@@ -20,12 +19,9 @@ func (s *StorageService) SaveBlob(ctx context.Context,  req *pb.Blob, resp *pb.E
         Data: req.Data,
         Modified: req.Date,
     }
-    if req.DeletedAt != 0 {
-        blob.DeletedAt = time.Unix(req.DeletedAt, 0)
-    }
     if err := s.db.Table("blobs").Set(
         "gorm:insert_option",
-        "ON CONFLICT ON CONSTRAINT blobs_pkey DO UPDATE SET data = excluded.data, modified = excluded.modified, deleted_at = excluded.deleted_at",
+        "ON CONFLICT ON CONSTRAINT blobs_pkey DO UPDATE SET data = excluded.data, modified = excluded.modified",
         ).Create(&blob).Error; err != nil {
         return err
     }
@@ -68,9 +64,6 @@ func (s *StorageService) Sync(ctx context.Context,  req *pb.SyncRequest, resp *p
             Uri: p.URI,
             Date: p.Modified,
             Data: p.Data,
-        }
-        if p.DeletedAt.IsZero() {
-            resp.Blobs[i].DeletedAt = p.DeletedAt.Unix()
         }
     }
     return nil
